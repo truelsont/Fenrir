@@ -1,0 +1,35 @@
+
+
+So my idea for the maps. 
+
+We have provinces that divide the map up, they are similar to meshes. 
+They have a set of properties that I need to write down 
+
+1) A set of neighbors 
+2) A set of boudary points
+
+What we need to do is create a assertion that for every province, all its 
+neighbors are touching it. All the provinces are disjoint, meaning that every edge isn't 
+in another province.
+
+We have two pipelines for map creation. The first way I think is the easiest. We procedurally 
+gerate the mesh, check for correctness and then export the mesh as a .json file or some 
+other file. The second pipeline is a creation of it and the import of it. I dont think 
+that will be easy but perhaps I can write it chunk by chunk and check for correctness. 
+This is the basic idea that I am going for. 
+
+
+Addl. functionality
+-sea 
+-resources 
+-region 
+-splitting (perhaps with tension, treaties idk)
+-terrain ? 
+- sub provinces (constrained probably by performance on this case but perhaps GPU 
+save us
+
+
+
+
+
+

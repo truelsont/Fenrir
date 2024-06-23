@@ -30,10 +30,10 @@ public class MainMenu implements Screen {
 
     @Override
     public void render(float delta) {
-    	fenrir.shape.setProjectionMatrix(fenrir.camera.combined); 
-    	fenrir.shape.begin(ShapeType.Line); 
-    	fenrir.shape.rect(0,0,100,100); 
-    	fenrir.shape.end(); 
+    	//fenrir.shape.setProjectionMatrix(fenrir.camera.combined); 
+    	//fenrir.shape.begin(ShapeType.Line); 
+    	//fenrir.shape.rect(0,0,100,100); 
+    	//fenrir.shape.end(); 
     	
 		 
     }

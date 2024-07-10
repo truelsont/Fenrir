@@ -8,7 +8,7 @@ import java.util.stream.Stream;
 
 import fenrir.util.Point;
 
-class BisectorMap {
+public class BisectorMap {
 
     private final Map<Bisector, VornoiEdge> data = new HashMap<>();
 
@@ -40,7 +40,7 @@ class BisectorMap {
         return data.hashCode();
     }
 
-    Stream<VornoiEdge> stream() {
+    public Stream<VornoiEdge> stream() {
         return data.values().stream();
     }
 

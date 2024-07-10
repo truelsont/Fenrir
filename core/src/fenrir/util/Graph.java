@@ -18,8 +18,14 @@ public class Graph<T> {
         adjList.values().forEach(e -> e.remove(vertex));
         adjList.remove(vertex);
     }
-
+    
+    
+    public Set<T> getNeighbors(T vertex){
+    	return adjList.getOrDefault(vertex, null); 
+    }
+    
     public void addEdge(T source, T destination) {
+    	if(source == null || destination == null) { return; }
         adjList.putIfAbsent(source, new HashSet<>());
         adjList.putIfAbsent(destination, new HashSet<>());
         adjList.get(source).add(destination);

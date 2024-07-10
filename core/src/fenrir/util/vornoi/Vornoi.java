@@ -1,19 +1,22 @@
 package fenrir.util.vornoi;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 import fenrir.util.Vector;
 import fenrir.util.vornoi.beachline.Beachline;
 import fenrir.util.vornoi.event.Event;
 import fenrir.util.vornoi.event.SiteEvent;
+import fenrir.util.vornoi.graph.VornoiEdge;
 import fenrir.util.vornoi.graph.VornoiGraph;
+import fenrir.util.Graph;
 import fenrir.util.Point;
 
 public class Vornoi {
 	private VornoiGraph graph;
 
 	public Vornoi() {
-		VornoiGraph graph = new VornoiGraph();
+		this.graph = new VornoiGraph();
 	}
 
 	public void vornoiDiagram(Collection<Vector> centroids, Vector corner, Vector bounds) {
@@ -62,6 +65,20 @@ public class Vornoi {
 			queue.remove(e);
 			sweep = e.getPoint().y;
 		}
+	}
+	
+	public Graph<Point> geVornoiGraph(){
+		
+		Graph<Point> extractedGraph = new Graph<Point>(); 
+		
+		List<VornoiEdge> edges = (this.graph.getEdges().stream()).toList();
+		for(VornoiEdge ve : edges) {
+			if(ve.getA() == null || ve.getB() == null) {continue;}
+			if(ve.getA().getLocation() == null || ve.getB().getLocation() == null) {continue;}
+			extractedGraph.addEdge(ve.getA().getLocation(), ve.getB().getLocation()); 
+		}
+			
+		return extractedGraph;  
 	}
 	
 	

@@ -29,4 +29,14 @@ public class Vertex {
     public int hashCode() {
         return location.hashCode();
     }
+
+
+	public Point getLocation() {
+		return location;
+	}
+
+
+	public void setLocation(Point location) {
+		this.location = location;
+	}
 }

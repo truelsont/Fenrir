@@ -2,6 +2,7 @@ package fenrir.map;
 
 import javax.swing.*;
 
+import fenrir.util.Graph;
 import fenrir.util.Point;
 import fenrir.util.Vector;
 import fenrir.util.vornoi.Vornoi;
@@ -46,7 +47,6 @@ public class MapConstructor extends JPanel {
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
 		// Draw Voronoi diagram
-		Vornoi vornoi = new Vornoi();
 		
 		
 		
@@ -54,14 +54,18 @@ public class MapConstructor extends JPanel {
 		double[] screenDims = new double[] { 0d, 0d };
 		Vector cornerVector = new Vector(cornerCoords);
 		Vector screenVector = new Vector(screenDims);
-		Collection<Point> computedVornoi = vornoi.vornoiDiagram(points, cornerVector, screenVector);
+
+		Vornoi vornoi = new Vornoi();
+		vornoi.vornoiDiagram(points, cornerVector, screenVector);
+		Graph<Point> computedVornoi = vornoi.geVornoiGraph(); 
 		if (computedVornoi == null) {
 			return;
 		}
 		
-		for (Point src : vertices) {
-			Set<Point> getNeighbors = computedVornoi.getNeighbors(src);
-			for (Point dst : vertices) {
+		for (Point src : computedVornoi.getVertices()) {
+			Set<Point> neighbors = computedVornoi.getNeighbors(src);
+			if(neighbors == null) {continue;}
+			for (Point dst : neighbors) {
 				g2.drawLine((int)src.x, (int)src.y, (int)dst.x, (int)dst.y);
 			}
 

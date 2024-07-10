@@ -49,5 +49,9 @@ public class VornoiGraph {
     public Stream<VornoiEdge> edgeStream() {
         return edges.stream();
     }
+    
+    public BisectorMap getEdges() {
+    	return edges; 
+    }
 
 }

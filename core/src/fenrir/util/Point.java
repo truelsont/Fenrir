@@ -1,11 +1,9 @@
 package fenrir.util;
 
-import static fenrir.util.vornoi.Math.EPSILON;
-import static fenrir.util.vornoi.Math.PRECISION;
-import static java.lang.Math.abs;
 
 public class Point {
-
+	
+	double EPSILON = 1e-6; 
     public final double x;
     public final double y;
 
@@ -20,13 +18,9 @@ public class Point {
         if (o == null || getClass() != o.getClass()) return false;
 
         Point point = (Point) o;
-        return abs(x - point.x) <= EPSILON && abs(y - point.y) <= EPSILON;
+        return Math.abs(x - point.x) <= EPSILON && Math.abs(y - point.y) <= EPSILON;
     }
 
-    @Override
-    public int hashCode() {
-        return (int) (x * PRECISION * 31) + (int) (y * PRECISION);
-    }
 
     @Override
     public String toString() {
@@ -39,5 +33,14 @@ public class Point {
 
 	public double getY() {
 		return y;
+	}
+	
+	public static Point midpoint(Point a, Point b) {
+		double x = (a.getX() + b.getX()) / 2; 
+		double y = (a.getY() + b.getY()) / 2; 
+		
+		return new Point(x, y); 
+		
+		
 	}
 }

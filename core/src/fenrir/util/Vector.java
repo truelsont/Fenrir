@@ -92,6 +92,14 @@ public class Vector {
 		return dist;
 
 	}
+	
+	public Point toPoint() {
+		if (this.elements.length != 2){
+			return null; 
+		}
+		
+		return new Point(elements[0], elements[1]); 
+	}
 
 	public String toString() {
 		StringBuilder sb = new StringBuilder();

@@ -43,6 +43,22 @@ public class Graph<T> {
 		if (eV2 != null)
 			eV2.remove(source);
 	}
+	
+	public Set<Edge<T>> edgeRepresentation(){
+		Set<Edge<T>> edgeList = new HashSet<>(); 
+		
+		for(T src: adjList.keySet()) {
+			Set<T> dsts = adjList.get(src); 
+			for(T dst:dsts) {
+				if(dst == src) {continue;}
+				Edge<T> e = new Edge(src, dst, false); 
+				edgeList.add(e); 
+				
+			}
+			
+		}
+		return edgeList; 
+	}
 
 	public Set<T> getVertices() {
 		return adjList.keySet();

@@ -1,10 +1,9 @@
 package fenrir.util.vornoi;
 
 import fenrir.util.Triangle; 
-import fenrir.util.Point; 
 import fenrir.util.Edge;
+import fenrir.util.Point2D;
 
-import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -15,15 +14,15 @@ public class BowyerWatson {
 
 
 
-	public static Set<Triangle> bowyerWatson(Collection<Point> points) {
+	public static Set<Triangle> bowyerWatson(Collection<Point2D> points) {
 		Set<Triangle> triangulation = new HashSet<>();
 
 		// Create a super-triangle that encompasses all the points
-		Triangle superTriangle = new Triangle(new Point(-1, -1), new Point(1600, -1),
-				new Point(-1, 1200));
+		Triangle superTriangle = new Triangle(new Point2D(-1, -1), new Point2D(1600, -1),
+				new Point2D(-1, 1200));
 		triangulation.add(superTriangle);
 
-		for (Point point : points) {
+		for (Point2D point : points) {
 			Set<Triangle> badTriangles = new HashSet<>();
 
 			for (Triangle triangle : triangulation) {
@@ -32,9 +31,9 @@ public class BowyerWatson {
 				}
 			}
 
-			Set<Edge<Point>> polygon = new HashSet<>();
+			Set<Edge<Point2D>> polygon = new HashSet<>();
 			for (Triangle triangle : badTriangles) {
-				for (Edge<Point> edge : triangle.getEdges()) {
+				for (Edge<Point2D> edge : triangle.getEdges()) {
 					boolean shared = false;
 					for (Triangle other : badTriangles) {
 						if (other != triangle && other.getEdges().contains(edge)) {
@@ -52,7 +51,7 @@ public class BowyerWatson {
 				triangulation.remove(triangle);
 			}
 
-			for (Edge<Point> edge : polygon) {
+			for (Edge<Point2D> edge : polygon) {
 				Triangle newTri = new Triangle(edge.getSrc(), edge.getDst(), point);
 				triangulation.add(newTri);
 			}
@@ -71,11 +70,11 @@ public class BowyerWatson {
 	}
 
 	public static void main(String[] args) {
-		List<Point> pointList = new ArrayList<>();
-		pointList.add(new Point(0, 0));
-		pointList.add(new Point(1, 0));
-		pointList.add(new Point(0, 1));
-		pointList.add(new Point(1, 1));
+		List<Point2D> pointList = new ArrayList<>();
+		pointList.add(new Point2D(0, 0));
+		pointList.add(new Point2D(1, 0));
+		pointList.add(new Point2D(0, 1));
+		pointList.add(new Point2D(1, 1));
 
 		Set<Triangle> result = bowyerWatson(pointList);
 

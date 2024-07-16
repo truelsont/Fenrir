@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.graphical.fenrir;
+package fenrir.graphics;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Screen;

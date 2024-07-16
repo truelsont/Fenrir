@@ -93,12 +93,12 @@ public class Vector {
 
 	}
 	
-	public Point toPoint() {
+	public Point2D toPoint() {
 		if (this.elements.length != 2){
 			return null; 
 		}
 		
-		return new Point(elements[0], elements[1]); 
+		return new Point2D(elements[0], elements[1]); 
 	}
 
 	public String toString() {

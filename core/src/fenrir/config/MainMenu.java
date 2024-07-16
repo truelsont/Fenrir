@@ -9,7 +9,8 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
-import com.graphical.fenrir.Fenrir;
+
+import fenrir.graphics.Fenrir;
 
 
 public class MainMenu implements Screen {

@@ -1,4 +1,4 @@
-package com.graphical.fenrir;
+package fenrir.graphics;
 
 import java.util.*;
 

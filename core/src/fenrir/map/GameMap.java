@@ -16,7 +16,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.math.Vector3;
-import com.graphical.fenrir.Fenrir;
+
+import fenrir.graphics.Fenrir;
 
 public class GameMap implements Serializable{
 

@@ -1,8 +1,10 @@
 package fenrir.map;
 
-public class MapConstructor {
+public class MapFace {
+	
+	
 
-	public MapConstructor() {
+	public MapFace() {
 		// TODO Auto-generated constructor stub
 	}
 

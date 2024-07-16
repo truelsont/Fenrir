@@ -4,16 +4,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Triangle {
-	Point p1, p2, p3;
+	Point2D p1, p2, p3;
 	// Constructors, getters, and other methods...
 
-	public Triangle(Point p1, Point p2, Point p3) {
+	public Triangle(Point2D p1, Point2D p2, Point2D p3) {
 		this.p1 = p1;
 		this.p2 = p2;
 		this.p3 = p3;
 	}
 
-	public boolean contains(Point p) {
+	public boolean contains(Point2D p) {
 		double alpha = ((p2.getY() - p3.getY()) * (p.getX() - p3.getX())
 				+ (p3.getX() - p2.getX()) * (p.getY() - p3.getY()))
 				/ ((p2.getY() - p3.getY()) * (p1.getX() - p3.getX())
@@ -26,17 +26,17 @@ public class Triangle {
 		return alpha > 0 && beta > 0 && gamma > 0;
 	}
 
-	public boolean containsVertex(Point p) {
+	public boolean containsVertex(Point2D p) {
 		return p1.equals(p) || p2.equals(p) || p3.equals(p);
 	}
 	
-    public static boolean isCCW(Point p1, Point p2, Point p3) {
+    public static boolean isCCW(Point2D p1, Point2D p2, Point2D p3) {
         double det = (p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x);
         return det > 0;
     }
 	
 
-    public Point getCircumcenter() {
+    public Point2D getCircumcenter() {
         double dA = p1.getX() * p1.getX() + p1.getY() * p1.getY();
         double dB = p2.getX() * p2.getX() + p2.getY() * p2.getY();
         double dC = p3.getX() * p3.getX() + p3.getY() * p3.getY();
@@ -51,10 +51,10 @@ public class Triangle {
 
         double centerX = aux1 / div;
         double centerY = aux2 / div;
-        return new Point(centerX, centerY);
+        return new Point2D(centerX, centerY);
     }
 
-	public boolean isInsideCircumcircle(Point p) {
+	public boolean isInsideCircumcircle(Point2D p) {
 		double ax = p1.getX() - p.getX();
 		double ay = p1.getY() - p.getY();
 		double bx = p2.getX() - p.getX();
@@ -75,35 +75,35 @@ public class Triangle {
 		return isCCW(p1,p2,p3) && determinant > 0;
 	}
 
-	public List<Edge<Point>> getEdges() {
-		List<Edge<Point>> edges = new ArrayList<>();
-		edges.add(new Edge<Point>(p1, p2, true));
-		edges.add(new Edge<Point>(p2, p3, true));
-		edges.add(new Edge<Point>(p3, p1, true));
+	public List<Edge<Point2D>> getEdges() {
+		List<Edge<Point2D>> edges = new ArrayList<>();
+		edges.add(new Edge<Point2D>(p1, p2, true));
+		edges.add(new Edge<Point2D>(p2, p3, true));
+		edges.add(new Edge<Point2D>(p3, p1, true));
 		return edges;
 	}
 
-	public Point getP1() {
+	public Point2D getP1() {
 		return p1;
 	}
 
-	public void setP1(Point p1) {
+	public void setP1(Point2D p1) {
 		this.p1 = p1;
 	}
 
-	public Point getP2() {
+	public Point2D getP2() {
 		return p2;
 	}
 
-	public void setP2(Point p2) {
+	public void setP2(Point2D p2) {
 		this.p2 = p2;
 	}
 
-	public Point getP3() {
+	public Point2D getP3() {
 		return p3;
 	}
 
-	public void setP3(Point p3) {
+	public void setP3(Point2D p3) {
 		this.p3 = p3;
 	}
 

@@ -1,4 +1,4 @@
-package fenrir.config;
+package fenrir.views;
 
 public class Constants {
 

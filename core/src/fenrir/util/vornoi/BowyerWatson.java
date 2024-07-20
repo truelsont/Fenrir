@@ -18,8 +18,13 @@ public class BowyerWatson {
 		Set<Triangle> triangulation = new HashSet<>();
 
 		// Create a super-triangle that encompasses all the points
-		Triangle superTriangle = new Triangle(new Point2D(-1, -1), new Point2D(1600, -1),
-				new Point2D(-1, 1200));
+		double minX = points.stream().map(Point2D::getX).min(Double::compare).orElse(Double.MIN_VALUE);
+		double minY = points.stream().map(Point2D::getY).min(Double::compare).orElse(Double.MIN_VALUE); 
+		double maxX = points.stream().map(Point2D::getX).max(Double::compare).orElse(Double.MAX_VALUE);
+		double maxY = points.stream().map(Point2D::getY).max(Double::compare).orElse(Double.MAX_VALUE); 
+		
+		Triangle superTriangle = new Triangle(new Point2D(minX - 1, minY - 1), new Point2D(2 * maxX + 1, minY -1),
+				new Point2D(minX - 1, 2 * maxY + 1));
 		triangulation.add(superTriangle);
 
 		for (Point2D point : points) {

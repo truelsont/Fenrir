@@ -4,8 +4,8 @@ package fenrir.util;
 public class Point2D {
 	
 	double EPSILON = 1e-6; 
-    public final double x;
-    public final double y;
+	private double x;
+    private double y;
 
     public Point2D(double x, double y) {
         this.x = x;
@@ -42,5 +42,29 @@ public class Point2D {
 		return new Point2D(x, y); 
 		
 		
+	}
+	
+	// noramlzies the smallest coord to 1
+	public void extend() {
+		if(this.x == 0 && this.y == 0){
+			return; 
+		}
+		
+		double factor = 1;//Math.min(Math.abs(x), Math.abs(y)); 
+		this.x = this.x / factor;
+		this.y = this.y / factor;
+		return; 
+
+		
+	}
+
+	public double distance(Point2D intersection, boolean normalize) {
+		double x = Math.pow(this.x - intersection.x, 2);
+		double y = Math.pow(this.y - intersection.y, 2);
+
+		if (normalize) {
+			return Math.sqrt(x + y);
+		}
+		return x + y; 
 	}
 }

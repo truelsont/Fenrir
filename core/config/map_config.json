@@ -1,0 +1,10 @@
+{
+	"createFlag": "random", // "random" or loaded file
+	
+	"dimension": {
+        "width": 800,
+        "height": 600
+    },
+	
+	"savePath": "./assets/maps/"
+}

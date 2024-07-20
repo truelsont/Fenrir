@@ -31,7 +31,7 @@ public class Triangle {
 	}
 	
     public static boolean isCCW(Point2D p1, Point2D p2, Point2D p3) {
-        double det = (p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x);
+        double det = (p2.getX() - p1.getX()) * (p3.getY() - p1.getY()) - (p2.getY() - p1.getY()) * (p3.getX() - p1.getX());
         return det > 0;
     }
 	

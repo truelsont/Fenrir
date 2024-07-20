@@ -47,6 +47,16 @@ public class Edge<T>{
 	public void setDst(T dst) {
 		this.dst = dst;
 	}
+
+	public boolean isUndirected() {
+		return undirected;
+	}
+
+	public void setUndirected(boolean undirected) {
+		this.undirected = undirected;
+	}
+
+
 	
 	
 	

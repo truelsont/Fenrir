@@ -8,8 +8,8 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
-import fenrir.config.*;
 import fenrir.map.*;
+import fenrir.views.*;
 
 public final class Fenrir extends Game {
 	

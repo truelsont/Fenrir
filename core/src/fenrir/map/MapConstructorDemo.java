@@ -2,6 +2,7 @@ package fenrir.map;
 
 import javax.swing.*;
 
+import fenrir.util.BoundingBox;
 import fenrir.util.Graph;
 import fenrir.util.Point2D;
 import fenrir.util.Triangle;
@@ -18,6 +19,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
+
+
 public class MapConstructorDemo extends JPanel {
 
 	private Collection<Point2D> points;
@@ -28,12 +31,13 @@ public class MapConstructorDemo extends JPanel {
 
 	// Generate random points
 	private ArrayList<Point2D> generateRandomPoints(int numberOfPoints) {
-		ArrayList<Point2D> points = new ArrayList<>();
-		Random rand = new Random();
-		for (int i = 0; i < numberOfPoints; i++) {
-			points.add(new Point2D(rand.nextInt(800), rand.nextInt(600)));
-		}
-		return points;
+	    ArrayList<Point2D> points = new ArrayList<>();
+	    // Seed the random number generator with a constant value
+	    Random rand = new Random(12345);
+	    for (int i = 0; i < numberOfPoints; i++) {
+	        points.add(new Point2D(rand.nextInt(800), rand.nextInt(600)));
+	    }
+	    return points;
 	}
 
 	// Draw the points and Voronoi diagram
@@ -44,7 +48,8 @@ public class MapConstructorDemo extends JPanel {
 		super.paintComponent(g);
 		Graphics2D g2 = (Graphics2D) g;
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		VornoiDelauney V = new VornoiDelauney(points);
+		BoundingBox<Point2D> bounds = new BoundingBox<>(new Point2D(0, 0), new Point2D(800, 600)); 
+		VornoiDelauney V = new VornoiDelauney(points, bounds);
 		Graph<Point2D> computedVornoi = V.getGraph();
 		if (computedVornoi == null) {
 			return;
@@ -58,14 +63,14 @@ public class MapConstructorDemo extends JPanel {
 
 			for (Point2D dst : neighbors) {
 
-				g2.drawLine((int) src.x, (int) src.y, (int) dst.x, (int) dst.y);
+				g2.drawLine((int) src.getX(), (int) src.getY(), (int) dst.getX(), (int) dst.getY());
 			}
 
 		}
 
 		g2.setColor(Color.RED);
 		for (Point2D point : points) {
-			g2.fillOval((int) point.x - 10, (int) point.y - 10, 20, 20);
+			g2.fillOval((int) point.getX() - 10, (int) point.getY() - 10, 20, 20);
 
 		}
 

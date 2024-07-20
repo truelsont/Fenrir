@@ -5,9 +5,11 @@ import java.util.*;
 public class Graph<T> {
 
 	private HashMap<T, Set<T>> adjList;
+	private HashMap<T, Set<Edge<T>>> pointToEdges; 
 
 	public Graph() {
 		this.adjList = new HashMap<>();
+		this.pointToEdges = new HashMap<>(); 
 	}
 
 	public void addVertex(T vertex) {
@@ -22,17 +24,28 @@ public class Graph<T> {
 	public Set<T> getNeighbors(T vertex) {
 		return adjList.getOrDefault(vertex, null);
 	}
-
-	public void addEdge(T source, T destination, boolean undirected) {
-		if (source == null || destination == null) {
+	
+	public void addEdge(Edge<T> e) {
+		if (e == null) {
 			return;
 		}
-		adjList.putIfAbsent(source, new HashSet<>());
-		adjList.putIfAbsent(destination, new HashSet<>());
-		adjList.get(source).add(destination);
-		if (undirected) {
-			adjList.get(destination).add(source);
+		T src = e.getSrc();
+		T dst = e.getDst();
+		if (src == null || dst == null) {
+			return;
 		}
+		this.addVertex(src);
+		this.addVertex(dst);
+		
+		adjList.get(src).add(dst);
+		if (e.isUndirected()) {
+			adjList.get(dst).add(src);
+		}
+	}
+
+	public void addOwnership(T vertex, Edge<T> edge) {
+		pointToEdges.putIfAbsent(vertex, new HashSet<Edge<T>>());
+		pointToEdges.get(vertex).add(edge);
 	}
 
 	public void removeEdge(T source, T destination) {

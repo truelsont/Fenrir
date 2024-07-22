@@ -3,7 +3,7 @@ package fenrir.util;
 
 public class Point2D {
 	
-	double EPSILON = 1e-6; 
+	double EPSILON = 1e-3; 
 	private double x;
     private double y;
 

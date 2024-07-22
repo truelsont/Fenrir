@@ -3,6 +3,8 @@ package fenrir.map;
 import javax.swing.*;
 
 import fenrir.util.BoundingBox;
+import fenrir.util.Edge;
+import fenrir.util.Face;
 import fenrir.util.Graph;
 import fenrir.util.Point2D;
 import fenrir.util.Triangle;
@@ -14,8 +16,10 @@ import java.awt.geom.Line2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
@@ -39,12 +43,47 @@ public class MapConstructorDemo extends JPanel {
 	    }
 	    return points;
 	}
+	
+
+private void renderDelauneyFaces(Graphics2D g2, VornoiDelauney V) {
+    // Retrieve the Delauney faces
+	Map<Point2D, Face<Point2D>> vornoiFaces = V.getVornoiFaces(); 
+    Collection<Face<Point2D>> delauneyFaces = vornoiFaces.values(); 
+
+    // Create a random color generator
+    Random rand = new Random();
+
+    for (Face<Point2D> face : delauneyFaces) {
+        // Order the points in CCW order
+        Set<Point2D> orderedPoints = new HashSet<>();
+		for (Edge<Point2D> edge : face.getEdges()) {
+			orderedPoints.add(edge.getSrc());
+			orderedPoints.add(edge.getDst());
+		}
+		// Create a polygon from the ordered points
+		Polygon poly = new Polygon();
+		for (Point2D point : orderedPoints) {
+			poly.addPoint((int) point.getX(), (int) point.getY());
+		}
+
+		// Generate a random color
+		Color color = new Color(rand.nextInt(256), rand.nextInt(256), rand.nextInt(256));
+		g2.setColor(color);
+		g2.fill(poly);
+		g2.setColor(Color.BLACK);
+		g2.draw(poly);
+    }
+}
+	
+	
 
 	// Draw the points and Voronoi diagram
 	@Override
 	protected void paintComponent(Graphics g) {
-
-		Collection<Point2D> points = this.generateRandomPoints(100); // new ArrayList<>();
+		int Xtranslate = 100; 
+		int Ytranslate = 100;
+		
+		Collection<Point2D> points = this.generateRandomPoints(3); // new ArrayList<>();
 		super.paintComponent(g);
 		Graphics2D g2 = (Graphics2D) g;
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -63,16 +102,20 @@ public class MapConstructorDemo extends JPanel {
 
 			for (Point2D dst : neighbors) {
 
-				g2.drawLine((int) src.getX(), (int) src.getY(), (int) dst.getX(), (int) dst.getY());
+				g2.drawLine((int) src.getX() + Xtranslate, (int) src.getY() + Ytranslate, (int) dst.getX() + Xtranslate, (int) dst.getY() + Ytranslate);
 			}
 
 		}
+		
+		
 
 		g2.setColor(Color.RED);
 		for (Point2D point : points) {
-			g2.fillOval((int) point.getX() - 10, (int) point.getY() - 10, 20, 20);
+			g2.fillOval((int) point.getX() - 10 + Xtranslate, (int) point.getY() - 10 + Ytranslate, 20, 20);
 
 		}
+		
+		//renderDelauneyFaces(g2, V);
 
 	}
 

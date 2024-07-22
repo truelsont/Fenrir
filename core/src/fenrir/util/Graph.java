@@ -10,6 +10,9 @@ public class Graph<T> {
 	public Graph() {
 		this.adjList = new HashMap<>();
 		this.pointToEdges = new HashMap<>(); 
+		
+		assert(false); 
+		//need to the do the point to edges stuff 
 	}
 
 	public void addVertex(T vertex) {
@@ -24,6 +27,8 @@ public class Graph<T> {
 	public Set<T> getNeighbors(T vertex) {
 		return adjList.getOrDefault(vertex, null);
 	}
+	
+	
 	
 	public void addEdge(Edge<T> e) {
 		if (e == null) {
@@ -64,7 +69,7 @@ public class Graph<T> {
 			Set<T> dsts = adjList.get(src); 
 			for(T dst:dsts) {
 				if(dst == src) {continue;}
-				Edge<T> e = new Edge(src, dst, false); 
+				Edge<T> e = new Edge<T>(src, dst, false); 
 				edgeList.add(e); 
 				
 			}

@@ -29,14 +29,37 @@ public class VornoiDelauney extends Vornoi {
 
 	// points on the bounding box
 	private Set<Point2D> boundaryPoints;
+	
+	// input points
+	//private final Set<Point2D> points;
+	
+	// input bounding box
+	//private final BoundingBox<Point2D> bounds;
 
 	public VornoiDelauney(Collection<Point2D> points, BoundingBox<Point2D> bounds) {
 		super();
+
 		if (points == null || bounds == null) {
 			throw new IllegalArgumentException("VornoiDelauney needs proper args");
 		}
+		
+		//points = (HashSet<Point2D> ) points.clone();  
+		//bounds = (BoundingBox<Point2D>) bounds.copy(); 
+		
+		if(points == null || bounds == null) {
+			throw new IllegalArgumentException("VornoiDelauney couldn't clone args" );
+		}
+
+		for (Point2D p : points) {
+			if (p == null) {
+				throw new IllegalArgumentException("VornoiDelauney needs non-null points");
+			}
+		}
+
+		points.removeIf(p -> !bounds.contains(p));
+		
 		if (points.size() < 3) {
-			throw new IllegalArgumentException("VornoiDelauney needs at least 3 points");
+			throw new IllegalArgumentException("VornoiDelauney needs at least 3 points not on boundary");
 		}
 
 		this.boundaryPoints = new HashSet<>();
@@ -44,7 +67,8 @@ public class VornoiDelauney extends Vornoi {
 		this.vornoiFaces = new HashMap<>();
 		this.pointToFaces = new HashMap<>();
 
-		points.removeIf(p -> !bounds.contains(p));
+        //this.points = points;
+        //this.bounds = bounds;
 
 		calculateVornoi(points, bounds);
 	}
@@ -102,6 +126,19 @@ public class VornoiDelauney extends Vornoi {
 				if (newEdge == null) {
 					continue;
 				}
+				
+			    // Check if the source of the new edge is not in the boundary
+			    if (!bounds.contains(newEdge.getSrc())) {
+			        // If so, add it to the boundary
+			        boundaryPoints.add(newEdge.getSrc());
+			    }
+
+			    // Check if the destination of the new edge is not in the boundary
+			    if (!bounds.contains(newEdge.getDst())) {
+			        // If so, add it to the boundary
+			        boundaryPoints.add(newEdge.getDst());
+			    }
+
 
 				bisectorMap.put(newEdge, edge);
 				this.vornoiGraph.addEdge(newEdge);
@@ -121,15 +158,8 @@ public class VornoiDelauney extends Vornoi {
 
 		// compute the boudary edges and the add to faces
 		boundaryCleanup(bounds);
-
-		// create a face graph
-		computeFaceGraph();
 	}
 
-	private void computeFaceGraph() {
-		// TODO Auto-generated method stub
-
-	}
 
 	/*
 	 * This function computes the vornoi faces for the vornoi graph if they are non
@@ -211,124 +241,118 @@ public class VornoiDelauney extends Vornoi {
 			return Double.compare(angle1, angle2);
 		});
 
+		// create boundary edges
+		Set<Edge<Point2D>> boundaryEdges = new HashSet<>();
+
 		for (int i = 0; i < sortedPoints.size(); i++) {
 			Point2D point1 = sortedPoints.get(i);
 			Point2D point2 = sortedPoints.get((i + 1) % sortedPoints.size());
 			Edge<Point2D> newEdge = new Edge<>(point1, point2, false);
 			this.vornoiGraph.addEdge(newEdge);
+			boundaryEdges.add(newEdge);
+		}
 
-			// Find the faces associated with the endpoints of the edge
+		createBoundaryFaces(boundaryEdges);
+	}
 
+	private void createBoundaryFaces(Set<Edge<Point2D>> boundaryEdges) {
+
+		Set<Edge<Point2D>> explored = new HashSet<>();
+		for (Edge<Point2D> newEdge : boundaryEdges) {
+			if (explored.contains(newEdge)) {
+				continue;
+			}
+
+			Point2D point1 = newEdge.getSrc();
+			Point2D point2 = newEdge.getDst();
+			
 			Set<Face<Point2D>> faces1 = pointToFaces.get(point1);
 			Set<Face<Point2D>> faces2 = pointToFaces.get(point2);
 
-			// If both endpoints have faces
-			if (faces1 != null && faces2 != null) {
-				// Take the intersection of the faces
-				Set<Face<Point2D>> intersection = new HashSet<>(faces1); // make a copy of set1
-				intersection.retainAll(faces2);
+			Set<Edge<Point2D>> edgesToClassify = new HashSet<>();
 
-				// If the intersection is a singleton, assign the edge to that face
-				if (faces1.size() >= 1) {
-					assert faces1.size() == 1;
-					Face<Point2D> face = intersection.iterator().next();
+			explored.add(newEdge);
 
-					face.addEdge(newEdge);
-					face.addEdge(newEdge);
+			while (faces1 == null && point1 != point2) {
+				Set<Edge<Point2D>> edges = vornoiGraph.getEdges(point1);
 
-					pointToFaces.get(point1).add(face);
-					pointToFaces.get(point2).add(face);
+				boolean deadend = true;
+				for (Edge<Point2D> edge : edges) {
+					if (!explored.contains(edge)) {
+						explored.add(edge);
+						edgesToClassify.add(edge);
+
+						point1 = getOtherEndpoint(edge, point1);
+						faces1 = pointToFaces.get(point1);
+						deadend = false;
+					}
 				}
+
+				if (deadend) {
+					break;
+				}
+
 			}
-			// If only one endpoint has a face, it's a corner
-			else if (faces1 != null || faces2 != null) {
 
-				/// !!!! need to fix this
+			while (faces2 == null && !point1.equals(point2)) {
+			    Set<Edge<Point2D>> edges = vornoiGraph.getEdges(point2);
 
-				Point2D corner = faces1 != null ? point1 : point2;
-				Set<Face<Point2D>> faces = faces1 != null ? faces1 : faces2;
+			    boolean deadend = true;
+			    for (Edge<Point2D> edge : edges) {
+			        if (!explored.contains(edge)) {
+			            explored.add(edge);
+			            edgesToClassify.add(edge);
 
-				
-				assert(false); 
-				//impl and use this in the generic graph class
-			    Set<Edge<Point2D>> allEdges = new HashSet<>(pointToEdges.get(corner));
-			    allEdges.remove(newEdge);
-
-			    // Iterate over the remaining edges
-			    for (Edge<Point2D> otherEdge : allEdges) {
-			        // Get the face associated with the other endpoint of the other edge
-			        Point2D otherEndpoint = getOtherEndpoint(otherEdge, corner);
-			        Set<Face<Point2D>> otherFaces = pointToFaces.get(otherEndpoint);
-
-			        Set<Face<Point2D>> intersection = new HashSet<>(faces); // make a copy of set1
-			        intersection.retainAll(otherFaces);
-
-			        // If the intersection is a singleton, assign the edge to that face
-			        if (intersection.size() == 1) {
-			            Face<Point2D> face = intersection.iterator().next();
-
-			            face.addEdge(newEdge);
-
-			            pointToFaces.get(point1).add(face);
-			            pointToFaces.get(point2).add(face);
+			            point2 = getOtherEndpoint(edge, point2);
+			            faces2 = pointToFaces.get(point2);
+			            deadend = false;
 			        }
 			    }
-			}
-			// If neither endpoint has a face
-			else {
-				// Find the edges that connect to this edge
-				List<Edge<Point2D>> connectedEdges = findConnectedEdges(newEdge);
 
-				// Get the faces associated with the other endpoints of the connected edges
-				Set<Face<Point2D>> connectedFaces1 = new HashSet<>();
-				Set<Face<Point2D>> connectedFaces2 = new HashSet<>();
-				for (Edge<Point2D> connectedEdge : connectedEdges) {
-					Point2D otherEndpoint1 = getOtherEndpoint(connectedEdge, point1);
-					Point2D otherEndpoint2 = getOtherEndpoint(connectedEdge, point2);
-					if (pointToFaces.containsKey(otherEndpoint1)) {
-						connectedFaces1.addAll(pointToFaces.get(otherEndpoint1));
-					}
-					if (pointToFaces.containsKey(otherEndpoint2)) {
-						connectedFaces2.addAll(pointToFaces.get(otherEndpoint2));
-					}
+			    if (deadend) {
+			        break;
+			    }
+			}
+			if(faces1 == null && faces2 == null) {continue;}
+			Set<Face<Point2D>> intersection = new HashSet<>(faces1);
+			intersection.retainAll(faces2);
+
+			if (intersection.size() >= 1) {
+				Face<Point2D> face = intersection.iterator().next();
+
+				for (Edge<Point2D> e : edgesToClassify) {
+					face.addEdge(e);
+					
+					pointToFaces.putIfAbsent(e.getSrc(), new HashSet<>()); 
+					pointToFaces.putIfAbsent(e.getDst(), new HashSet<>()); 
+
+					pointToFaces.get(e.getSrc()).add(face);
+					pointToFaces.get(e.getDst()).add(face);
 				}
+			}else {
+			    // Create a new face
+				assert(false); 
+				Point2D p = new Point2D(0d,0d); 
+			    Face<Point2D> newFace = new Face<>(p);
 
-				// Take the intersection of the faces
-				connectedFaces1.retainAll(connectedFaces2);
+			    // Add all the edges to the new face
+			    for (Edge<Point2D> e : edgesToClassify) {
+			        newFace.addEdge(e);
 
-				// If the intersection is a singleton, assign the edge to that face
-				if (connectedFaces1.size() == 1) {
-					Face<Point2D> face = connectedFaces1.iterator().next();
-					face.addEdge(newEdge);
-				}
+			        // Add the new face to the pointToFaces map for each of its endpoints
+			        pointToFaces.get(e.getSrc()).add(newFace);
+			        pointToFaces.get(e.getDst()).add(newFace);
+			    }
+
+			    // Add the new face to the vornoiFaces map
+			    vornoiFaces.put(newFace.getCenter(), newFace);
 			}
 
 		}
 	}
 
-	private Edge<Point2D> findOtherEdge(Point2D corner, Edge<Point2D> edge) {
-		// Iterate over all edges in the Voronoi graph
-		for (Edge<Point2D> otherEdge : this.vornoiGraph.edgeRepresentation()) {
-			// If the other edge is not the same as the given edge and it shares the corner
-			if (!otherEdge.equals(edge) && (otherEdge.getSrc().equals(corner) || otherEdge.getDst().equals(corner))) {
-				return otherEdge;
-			}
-		}
-		return null;
-	}
 
-	private List<Edge<Point2D>> findConnectedEdges(Edge<Point2D> edge) {
-		List<Edge<Point2D>> connectedEdges = new LinkedList<>();
-		// Iterate over all edges in the Voronoi graph
-		for (Edge<Point2D> otherEdge : this.vornoiGraph.edgeRepresentation()) {
-			// If the other edge shares a point with the given edge
-			if (otherEdge.getSrc().equals(edge.getSrc()) || otherEdge.getDst().equals(edge.getDst())
-					|| otherEdge.getSrc().equals(edge.getDst()) || otherEdge.getDst().equals(edge.getSrc())) {
-				connectedEdges.add(otherEdge);
-			}
-		}
-		return connectedEdges;
-	}
+
 
 	private Point2D getOtherEndpoint(Edge<Point2D> edge, Point2D point) {
 		// Return the other endpoint of the edge

@@ -1,7 +1,7 @@
 package fenrir.util;
 
 
-public class Point2D {
+public class Point2D implements Cloneable{
 	
 	double EPSILON = 1e-3; 
 	private double x;
@@ -42,6 +42,10 @@ public class Point2D {
 		return new Point2D(x, y); 
 		
 		
+	}
+	
+	public Point2D clone() {
+		return new Point2D(this.x, this.y);
 	}
 	
 	// noramlzies the smallest coord to 1

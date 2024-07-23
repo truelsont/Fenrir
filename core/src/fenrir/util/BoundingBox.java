@@ -12,6 +12,7 @@ public class BoundingBox<T> {
 		this.dimensions = dimensions;
 	}
 
+	//contains non inclusive of BBox
 	public boolean contains(T point) {
 		if (point == null) {
 			return false;
@@ -23,13 +24,15 @@ public class BoundingBox<T> {
 
 		if (point instanceof Point2D) {
 			Point2D p = (Point2D) point;
-			return p.getX() >= ((Point2D) topCorner).getX()
-					&& p.getX() <= ((Point2D) topCorner).getX() + ((Point2D) dimensions).getX()
-					&& p.getY() >= ((Point2D) topCorner).getY()
-					&& p.getY() <= ((Point2D) topCorner).getY() + ((Point2D) dimensions).getY();
+			return p.getX() > ((Point2D) topCorner).getX()
+					&& p.getX() < ((Point2D) topCorner).getX() + ((Point2D) dimensions).getX()
+					&& p.getY() > ((Point2D) topCorner).getY()
+					&& p.getY() < ((Point2D) topCorner).getY() + ((Point2D) dimensions).getY();
 		}
 		return false;
 	}
+	
+
 
 	public T getTopCorner() {
 		return topCorner;

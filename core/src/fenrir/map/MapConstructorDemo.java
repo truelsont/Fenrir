@@ -16,6 +16,7 @@ import java.awt.geom.Line2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -50,28 +51,36 @@ private void renderDelauneyFaces(Graphics2D g2, VornoiDelauney V) {
 	Map<Point2D, Face<Point2D>> vornoiFaces = V.getVornoiFaces(); 
     Collection<Face<Point2D>> delauneyFaces = vornoiFaces.values(); 
 
-    // Create a random color generator
-    Random rand = new Random();
+    Random rand = new Random(12345);
 
     for (Face<Point2D> face : delauneyFaces) {
         // Order the points in CCW order
-        Set<Point2D> orderedPoints = new HashSet<>();
-		for (Edge<Point2D> edge : face.getEdges()) {
-			orderedPoints.add(edge.getSrc());
-			orderedPoints.add(edge.getDst());
-		}
-		// Create a polygon from the ordered points
-		Polygon poly = new Polygon();
-		for (Point2D point : orderedPoints) {
-			poly.addPoint((int) point.getX(), (int) point.getY());
-		}
+        List<Point2D> orderedPoints = new ArrayList<>();
+        for (Edge<Point2D> edge : face.getEdges()) {
+            orderedPoints.add(edge.getSrc());
+            orderedPoints.add(edge.getDst());
+        }
 
-		// Generate a random color
-		Color color = new Color(rand.nextInt(256), rand.nextInt(256), rand.nextInt(256));
-		g2.setColor(color);
-		g2.fill(poly);
-		g2.setColor(Color.BLACK);
-		g2.draw(poly);
+        // Sort the points based on their angle with respect to the center
+        Point2D center = face.getCenter();
+        Collections.sort(orderedPoints, (p1, p2) -> {
+            double angle1 = Math.atan2(p1.getY() - center.getY(), p1.getX() - center.getX());
+            double angle2 = Math.atan2(p2.getY() - center.getY(), p2.getX() - center.getX());
+            return Double.compare(angle1, angle2);
+        });
+
+        // Create a polygon from the ordered points
+        Polygon poly = new Polygon();
+        for (Point2D point : orderedPoints) {
+            poly.addPoint((int) point.getX() + 100, (int) point.getY() + 100);
+        }
+
+        // Generate a random color
+        Color color = new Color(rand.nextInt(256), rand.nextInt(256), rand.nextInt(256));
+        g2.setColor(color);
+        g2.fill(poly);
+        g2.setColor(Color.BLACK);
+        g2.draw(poly);
     }
 }
 	
@@ -83,7 +92,7 @@ private void renderDelauneyFaces(Graphics2D g2, VornoiDelauney V) {
 		int Xtranslate = 100; 
 		int Ytranslate = 100;
 		
-		Collection<Point2D> points = this.generateRandomPoints(3); // new ArrayList<>();
+		Collection<Point2D> points = this.generateRandomPoints(10000); // new ArrayList<>();
 		super.paintComponent(g);
 		Graphics2D g2 = (Graphics2D) g;
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -93,6 +102,7 @@ private void renderDelauneyFaces(Graphics2D g2, VornoiDelauney V) {
 		if (computedVornoi == null) {
 			return;
 		}
+		/*
 
 		for (Point2D src : computedVornoi.getVertices()) {
 			Set<Point2D> neighbors = computedVornoi.getNeighbors(src);
@@ -115,7 +125,14 @@ private void renderDelauneyFaces(Graphics2D g2, VornoiDelauney V) {
 
 		}
 		
-		//renderDelauneyFaces(g2, V);
+	    g2.setColor(Color.YELLOW);
+	    for (Point2D point : V.boundaryPoints) {
+	        g2.fillOval((int) point.getX() - 10 + Xtranslate, (int) point.getY() - 10 + Ytranslate, 20, 20);
+	    }*/
+		
+		
+		
+		renderDelauneyFaces(g2, V);
 
 	}
 

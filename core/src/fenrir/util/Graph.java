@@ -46,6 +46,9 @@ public class Graph<T> {
 		if (e.isUndirected()) {
 			adjList.get(dst).add(src);
 		}
+		
+		addOwnership(src, e);
+		addOwnership(dst, e);
 	}
 
 	public void addOwnership(T vertex, Edge<T> edge) {
@@ -92,5 +95,9 @@ public class Graph<T> {
 
 	public boolean hasEdge(T source, T destination) {
 		return adjList.containsKey(source) && adjList.get(source).contains(destination);
+	}
+	
+	public Set<Edge<T>> getEdges(T vertex) {
+		return pointToEdges.get(vertex);
 	}
 }

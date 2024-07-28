@@ -1,0 +1,20 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "process",
+      "name": "Launch Desktop",
+      "request": "launch",
+      "command": "./gradlew desktop:run --stacktrace",
+      "args": [],
+      "problemMatcher": []
+    }, 
+    {
+      "type": "java",
+      "name": "Debug Desktop",
+      "request": "attach",
+      "hostName": "localhost",
+      "port": 5005
+    }
+  ]
+}

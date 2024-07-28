@@ -7,11 +7,24 @@ public class Edge<T>{
 	private T src; 
 	private T dst; 
 	private boolean undirected; 
+	private double weight;
 		
 	public Edge(T src, T dst, boolean undirected) {
 		this.src = src; 
 		this.dst = dst; 
 		this.undirected = undirected; 
+		this.weight = 1;
+	}
+
+	public Edge(T src, T dst, boolean undirected, double weight) {
+		this.src = src; 
+		this.dst = dst; 
+		this.undirected = undirected; 
+		this.weight = weight;
+	}
+
+	public Edge(T src, T dst){
+		this(src, dst, false);
 	}
 
 	@Override

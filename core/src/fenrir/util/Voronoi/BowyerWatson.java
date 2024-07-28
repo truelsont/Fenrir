@@ -1,4 +1,4 @@
-package fenrir.util.vornoi;
+package fenrir.util.Voronoi;
 
 import fenrir.util.Triangle; 
 import fenrir.util.Edge;

@@ -54,5 +54,17 @@ public class Face<T> {
 		return vertices;
 	}
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        return this.center.equals(((Face<?>) o).center);
+    }
+
+    @Override
+    public int hashCode() {
+        return center.hashCode();
+    }
+
 
 }

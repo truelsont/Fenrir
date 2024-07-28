@@ -1,4 +1,4 @@
-package fenrir.util.vornoi;
+package fenrir.util.Voronoi;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -16,64 +16,53 @@ import fenrir.util.BoundingBox;
 import fenrir.util.Edge;
 import fenrir.util.Face;
 
-public class VornoiDelauney extends Vornoi {
+public class VoronoiDelauney extends Voronoi {
 
-	// this maps vornoi edges to the delauney edges that created them
+	// this maps Voronoi edges to the delauney edges that created them
 	private Map<Edge<Point2D>, Edge<Point2D>> bisectorMap;
 
-	// the vornoi graph, centroid to the edges that create it
-	private Map<Point2D, Face<Point2D>> vornoiFaces;
+	// the Voronoi graph, centroid to the edges that create it
+	private Map<Point2D, Face<Point2D>> VoronoiFaces;
 
 	// the points to the faces they are on
 	private Map<Point2D, Set<Face<Point2D>>> pointToFaces;
 
 	// points on the bounding box
 	private Set<Point2D> boundaryPoints;
-	
-	// input points
-	//private final Set<Point2D> points;
-	
-	// input bounding box
-	//private final BoundingBox<Point2D> bounds;
 
-	public VornoiDelauney(Collection<Point2D> points, BoundingBox<Point2D> bounds) {
+	// input points
+	private Set<Point2D> points;
+
+	// input bounding box
+	private BoundingBox<Point2D> bounds;
+
+	public VoronoiDelauney(Set<Point2D> points, BoundingBox<Point2D> bounds) {
 		super();
 
 		if (points == null || bounds == null) {
-			throw new IllegalArgumentException("VornoiDelauney needs proper args");
+			throw new IllegalArgumentException("VoronoiDelauney needs proper args");
 		}
-		
-		//points = (HashSet<Point2D> ) points.clone();  
-		//bounds = (BoundingBox<Point2D>) bounds.copy(); 
-		
-		if(points == null || bounds == null) {
-			throw new IllegalArgumentException("VornoiDelauney couldn't clone args" );
+
+		if (points == null || bounds == null) {
+			throw new IllegalArgumentException("VoronoiDelauney couldn't clone args");
 		}
 
 		for (Point2D p : points) {
 			if (p == null) {
-				throw new IllegalArgumentException("VornoiDelauney needs non-null points");
+				throw new IllegalArgumentException("VoronoiDelauney needs non-null points");
 			}
 		}
 
 		points.removeIf(p -> !bounds.contains(p));
-		
+
 		if (points.size() < 3) {
-			throw new IllegalArgumentException("VornoiDelauney needs at least 3 points not on boundary");
+			throw new IllegalArgumentException("VoronoiDelauney needs at least 3 points not on boundary");
 		}
 
-		this.boundaryPoints = new HashSet<>();
-		this.bisectorMap = new HashMap<>();
-		this.vornoiFaces = new HashMap<>();
-		this.pointToFaces = new HashMap<>();
-
-        //this.points = points;
-        //this.bounds = bounds;
-
-		calculateVornoi(points, bounds);
+		calculateVoronoi(points, bounds);
 	}
 
-	private void computeAbstractVornoi(Collection<Point2D> points, BoundingBox<Point2D> bounds) {
+	private void computeAbstractVoronoi() {
 		Set<Triangle> delauneyTriangles = BowyerWatson.bowyerWatson(points);
 		Map<Edge<Point2D>, Collection<Point2D>> edgeToCircumcircle = new HashMap<>();
 
@@ -113,7 +102,7 @@ public class VornoiDelauney extends Vornoi {
 				}
 
 				boundaryPoints.add(newEdge.getDst());
-				this.vornoiGraph.addEdge(newEdge);
+				this.VoronoiGraph.addEdge(newEdge);
 				bisectorMap.put(newEdge, edge);
 
 			} else if (neighbors.size() == 2) {
@@ -126,22 +115,21 @@ public class VornoiDelauney extends Vornoi {
 				if (newEdge == null) {
 					continue;
 				}
-				
-			    // Check if the source of the new edge is not in the boundary
-			    if (!bounds.contains(newEdge.getSrc())) {
-			        // If so, add it to the boundary
-			        boundaryPoints.add(newEdge.getSrc());
-			    }
 
-			    // Check if the destination of the new edge is not in the boundary
-			    if (!bounds.contains(newEdge.getDst())) {
-			        // If so, add it to the boundary
-			        boundaryPoints.add(newEdge.getDst());
-			    }
+				// Check if the source of the new edge is not in the boundary
+				if (!bounds.contains(newEdge.getSrc())) {
+					// If so, add it to the boundary
+					boundaryPoints.add(newEdge.getSrc());
+				}
 
+				// Check if the destination of the new edge is not in the boundary
+				if (!bounds.contains(newEdge.getDst())) {
+					// If so, add it to the boundary
+					boundaryPoints.add(newEdge.getDst());
+				}
 
 				bisectorMap.put(newEdge, edge);
-				this.vornoiGraph.addEdge(newEdge);
+				this.VoronoiGraph.addEdge(newEdge);
 
 			}
 
@@ -149,30 +137,39 @@ public class VornoiDelauney extends Vornoi {
 
 	}
 
-	private void calculateVornoi(Collection<Point2D> points, BoundingBox<Point2D> bounds) {
-		// compute the abstract vornoi graph
-		computeAbstractVornoi(points, bounds);
+	private void calculateVoronoi(Set<Point2D> points, BoundingBox<Point2D> bounds) {
+
+		this.boundaryPoints = new HashSet<>();
+		this.bisectorMap = new HashMap<>();
+		this.VoronoiFaces = new HashMap<>();
+		this.pointToFaces = new HashMap<>();
+
+		this.points = points;
+		this.bounds = bounds;
+
+		// compute the abstract Voronoi graph
+		computeAbstractVoronoi();
 
 		// compute the internal faces
-		computeInternalVornoiFaces();
+		computeInternalVoronoiFaces();
 
 		// compute the boudary edges and the add to faces
-		boundaryCleanup(bounds);
+		boundaryCleanup();
 	}
 
-
 	/*
-	 * This function computes the vornoi faces for the vornoi graph if they are non
+	 * This function computes the Voronoi faces for the Voronoi graph if they are
+	 * non
 	 * boundary
 	 * 
 	 * 
 	 * 
 	 */
-	private void computeInternalVornoiFaces() {
+	private void computeInternalVoronoiFaces() {
 
 		// Assign each edge to the centroid that created it
-		for (Edge<Point2D> vornoiEdge : bisectorMap.keySet()) {
-			Edge<Point2D> delauneyEdge = bisectorMap.get(vornoiEdge);
+		for (Edge<Point2D> VoronoiEdge : bisectorMap.keySet()) {
+			Edge<Point2D> delauneyEdge = bisectorMap.get(VoronoiEdge);
 			if (delauneyEdge == null) {
 				continue;
 			}
@@ -184,39 +181,39 @@ public class VornoiDelauney extends Vornoi {
 
 			Face<Point2D> face1;
 			Face<Point2D> face2;
-			if (vornoiFaces.containsKey(centroid1)) {
-				face1 = vornoiFaces.get(centroid1);
+			if (VoronoiFaces.containsKey(centroid1)) {
+				face1 = VoronoiFaces.get(centroid1);
 			} else {
 				face1 = new Face<>(centroid1);
-				vornoiFaces.put(centroid1, face1);
+				VoronoiFaces.put(centroid1, face1);
 			}
 
-			if (vornoiFaces.containsKey(centroid2)) {
-				face2 = vornoiFaces.get(centroid2);
+			if (VoronoiFaces.containsKey(centroid2)) {
+				face2 = VoronoiFaces.get(centroid2);
 			} else {
 				face2 = new Face<>(centroid2);
-				vornoiFaces.put(centroid2, face2);
+				VoronoiFaces.put(centroid2, face2);
 			}
 
-			face1.addEdge(vornoiEdge);
-			face2.addEdge(vornoiEdge);
+			face1.addEdge(VoronoiEdge);
+			face2.addEdge(VoronoiEdge);
 
 			// Add the edge to the pointToFaces map for each of its endpoints
-			if (pointToFaces.get(vornoiEdge.getSrc()) == null) {
-				pointToFaces.put(vornoiEdge.getSrc(), new HashSet<>());
+			if (pointToFaces.get(VoronoiEdge.getSrc()) == null) {
+				pointToFaces.put(VoronoiEdge.getSrc(), new HashSet<>());
 			}
-			if (pointToFaces.get(vornoiEdge.getDst()) == null) {
-				pointToFaces.put(vornoiEdge.getDst(), new HashSet<>());
+			if (pointToFaces.get(VoronoiEdge.getDst()) == null) {
+				pointToFaces.put(VoronoiEdge.getDst(), new HashSet<>());
 			}
-			pointToFaces.get(vornoiEdge.getSrc()).add(face1);
-			pointToFaces.get(vornoiEdge.getSrc()).add(face2);
-			pointToFaces.get(vornoiEdge.getDst()).add(face1);
-			pointToFaces.get(vornoiEdge.getDst()).add(face2);
+			pointToFaces.get(VoronoiEdge.getSrc()).add(face1);
+			pointToFaces.get(VoronoiEdge.getSrc()).add(face2);
+			pointToFaces.get(VoronoiEdge.getDst()).add(face1);
+			pointToFaces.get(VoronoiEdge.getDst()).add(face2);
 
 		}
 	}
 
-	private void boundaryCleanup(BoundingBox<Point2D> bounds) {
+	private void boundaryCleanup() {
 		// Get the corners of the bounding box
 		Point2D[] corners = { bounds.getTopCorner(),
 				new Point2D(bounds.getTopCorner().getX() + bounds.getDimensions().getX(), bounds.getTopCorner().getY()),
@@ -242,20 +239,20 @@ public class VornoiDelauney extends Vornoi {
 		});
 
 		// create boundary edges
-		Set<Edge<Point2D>> boundaryEdges = new HashSet<>();
+		Collection<Edge<Point2D>> boundaryEdges = new LinkedList<>();
 
 		for (int i = 0; i < sortedPoints.size(); i++) {
 			Point2D point1 = sortedPoints.get(i);
 			Point2D point2 = sortedPoints.get((i + 1) % sortedPoints.size());
 			Edge<Point2D> newEdge = new Edge<>(point1, point2, false);
-			this.vornoiGraph.addEdge(newEdge);
+			this.VoronoiGraph.addEdge(newEdge);
 			boundaryEdges.add(newEdge);
 		}
 
 		createBoundaryFaces(boundaryEdges);
 	}
 
-	private void createBoundaryFaces(Set<Edge<Point2D>> boundaryEdges) {
+	private void createBoundaryFaces(Collection<Edge<Point2D>> boundaryEdges) {
 
 		Set<Edge<Point2D>> explored = new HashSet<>();
 		for (Edge<Point2D> newEdge : boundaryEdges) {
@@ -265,7 +262,7 @@ public class VornoiDelauney extends Vornoi {
 
 			Point2D point1 = newEdge.getSrc();
 			Point2D point2 = newEdge.getDst();
-			
+
 			Set<Face<Point2D>> faces1 = pointToFaces.get(point1);
 			Set<Face<Point2D>> faces2 = pointToFaces.get(point2);
 
@@ -273,8 +270,13 @@ public class VornoiDelauney extends Vornoi {
 
 			explored.add(newEdge);
 
-			while (faces1 == null && point1 != point2) {
-				Set<Edge<Point2D>> edges = vornoiGraph.getEdges(point1);
+			while (faces1 == null && !point1.equals(point2)) {
+				Set<Edge<Point2D>> edges = VoronoiGraph.getEdges(point1);
+				if (edges == null) {
+					break;
+				}
+				edges = new HashSet<>(edges);
+				edges.retainAll(boundaryEdges);
 
 				boolean deadend = true;
 				for (Edge<Point2D> edge : edges) {
@@ -295,25 +297,35 @@ public class VornoiDelauney extends Vornoi {
 			}
 
 			while (faces2 == null && !point1.equals(point2)) {
-			    Set<Edge<Point2D>> edges = vornoiGraph.getEdges(point2);
+				Set<Edge<Point2D>> edges = VoronoiGraph.getEdges(point2);
+				if (edges == null) {
+					break;
+				}
+				edges = new HashSet<>(edges);
+				edges.retainAll(boundaryEdges);
 
-			    boolean deadend = true;
-			    for (Edge<Point2D> edge : edges) {
-			        if (!explored.contains(edge)) {
-			            explored.add(edge);
-			            edgesToClassify.add(edge);
+				boolean deadend = true;
+				for (Edge<Point2D> edge : edges) {
+					if (!explored.contains(edge)) {
+						explored.add(edge);
+						edgesToClassify.add(edge);
 
-			            point2 = getOtherEndpoint(edge, point2);
-			            faces2 = pointToFaces.get(point2);
-			            deadend = false;
-			        }
-			    }
+						point2 = getOtherEndpoint(edge, point2);
+						faces2 = pointToFaces.get(point2);
+						deadend = false;
+					}
+				}
 
-			    if (deadend) {
-			        break;
-			    }
+				if (deadend) {
+					break;
+				}
 			}
-			if(faces1 == null && faces2 == null) {continue;}
+
+			if (faces1 == null || faces2 == null) {
+				System.out.println("faces1 is null");
+				continue;
+			}
+
 			Set<Face<Point2D>> intersection = new HashSet<>(faces1);
 			intersection.retainAll(faces2);
 
@@ -322,37 +334,38 @@ public class VornoiDelauney extends Vornoi {
 
 				for (Edge<Point2D> e : edgesToClassify) {
 					face.addEdge(e);
-					
-					pointToFaces.putIfAbsent(e.getSrc(), new HashSet<>()); 
-					pointToFaces.putIfAbsent(e.getDst(), new HashSet<>()); 
+
+					pointToFaces.putIfAbsent(e.getSrc(), new HashSet<>());
+					pointToFaces.putIfAbsent(e.getDst(), new HashSet<>());
 
 					pointToFaces.get(e.getSrc()).add(face);
 					pointToFaces.get(e.getDst()).add(face);
 				}
-			}else {
-			    // Create a new face
-				assert(false); 
-				Point2D p = new Point2D(0d,0d); 
-			    Face<Point2D> newFace = new Face<>(p);
-
-			    // Add all the edges to the new face
-			    for (Edge<Point2D> e : edgesToClassify) {
-			        newFace.addEdge(e);
-
-			        // Add the new face to the pointToFaces map for each of its endpoints
-			        pointToFaces.get(e.getSrc()).add(newFace);
-			        pointToFaces.get(e.getDst()).add(newFace);
-			    }
-
-			    // Add the new face to the vornoiFaces map
-			    vornoiFaces.put(newFace.getCenter(), newFace);
+			} else {
+				// Create a new face
+				System.out.println("intersection is empty");
+				continue;
+				/*
+				 * assert(false);
+				 * Point2D p = new Point2D(0d,0d);
+				 * Face<Point2D> newFace = new Face<>(p);
+				 * 
+				 * // Add all the edges to the new face
+				 * for (Edge<Point2D> e : edgesToClassify) {
+				 * newFace.addEdge(e);
+				 * 
+				 * // Add the new face to the pointToFaces map for each of its endpoints
+				 * pointToFaces.get(e.getSrc()).add(newFace);
+				 * pointToFaces.get(e.getDst()).add(newFace);
+				 * }
+				 * 
+				 * // Add the new face to the VoronoiFaces map
+				 * VoronoiFaces.put(newFace.getCenter(), newFace);
+				 */
 			}
 
 		}
 	}
-
-
-
 
 	private Point2D getOtherEndpoint(Edge<Point2D> edge, Point2D point) {
 		// Return the other endpoint of the edge
@@ -429,8 +442,64 @@ public class VornoiDelauney extends Vornoi {
 		return closestIntersection;
 	}
 
-	public Map<Point2D, Face<Point2D>> getVornoiFaces() {
-		return vornoiFaces;
+	public void floydRelaxations() {
+		// Floyd relaxation
+
+		Set<Point2D> newPoints = new HashSet<>();
+		for (Point2D p : VoronoiFaces.keySet()) {
+
+			Face<Point2D> face = VoronoiFaces.get(p);
+			Set<Point2D> vertices = face.getVertices();
+			if (vertices.size() == 0) {
+				continue;
+			}
+
+			double x = 0;
+			double y = 0;
+			for (Point2D v : vertices) {
+				x += v.getX();
+				y += v.getY();
+			}
+
+			x = x / vertices.size();
+			y = y / vertices.size();
+
+			newPoints.add(new Point2D(x, y));
+		}
+
+		calculateVoronoi(newPoints, bounds);
+	}
+
+	@Override
+	public Graph<Face<Point2D>> getVoronoiFaces() {
+
+		Graph<Face<Point2D>> graph = new Graph<>();
+
+		for (Face<Point2D> face : VoronoiFaces.values()) {
+			graph.addVertex(face);
+		}
+
+		// Add edges between neighboring faces
+		for (Face<Point2D> face : VoronoiFaces.values()) {
+			Set<Point2D> vertices = face.getVertices();
+			Set<Face<Point2D>> neighbors = new HashSet<>();
+
+			for(Point2D p : vertices){
+				neighbors.addAll(pointToFaces.get(p));
+			}
+
+
+			// Remove the current face from its own neighbors
+			neighbors.remove(face);
+
+			// Add edges between the current face and its neighboring faces
+			for (Face<Point2D> neighbor : neighbors) {
+				Edge<Face<Point2D>> edge = new Edge<>(face, neighbor, true);
+				graph.addEdge(edge);
+			}
+		}
+
+		return graph;
 	}
 
 }

@@ -19,6 +19,9 @@ gwt-unitCache/
 www-test/
 .gwt-tmp/
 
+## VSCode
+*.code-workspace
+
 ## Android Studio and Intellij and Android in general
 /android/libs/armeabi-v7a/
 /android/libs/arm64-v8a/

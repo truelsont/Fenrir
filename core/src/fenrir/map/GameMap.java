@@ -19,6 +19,15 @@ import com.badlogic.gdx.math.Vector3;
 
 import fenrir.graphics.Fenrir;
 
+
+
+/*
+ * This class is the primary controller for the game maps 
+ * 
+ * 
+ * 
+ * 
+ */
 public class GameMap implements Serializable{
 
 	private static final long serialVersionUID = 1L;
@@ -26,50 +35,13 @@ public class GameMap implements Serializable{
 	private Fenrir fenrir; 
 	
 
-	@SuppressWarnings("unchecked")
-	public GameMap(Fenrir fenrir, Map<String,Object > args) throws Exception {
-		if(fenrir == null) {
-			throw new Exception("need an instance of fenrir"); 
-		}
-		
-		if(args != null) {
-			
-			//retrieves the provinces for the map
-			if(args.containsKey("provinces")) {
-				Object provinces = args.get("provinces"); 
-				if(provinces instanceof List<?>) {
-					List<?> tempList = (List<?>) provinces; 
-					for(Object obj:tempList) {
-						if(!(obj instanceof Province)) {
-							throw new Exception("provinces arg can only contain provinces types"); 
-						}
-					}
-				}else {
-					throw new Exception("provinces arg need to be a List<Province> type"); 
-				}
-				
-				this.provinces = (List<Province>) args.get("provinces"); 
-			}
-			
-		}
-		
-		this.fenrir = fenrir; 
+	public GameMap(){
+
 	}
 	
 	public void render() {
 		
-		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-		ShapeRenderer shapeRenderer = this.fenrir.shape; 
-		shapeRenderer.setProjectionMatrix(this.fenrir.camera.combined); 
-		for(Province province:provinces) {	
-			province.render(shapeRenderer);
-		}
 	}
-	
-	
-	
-	
 
-	
 }
 	

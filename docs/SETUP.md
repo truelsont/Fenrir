@@ -17,13 +17,15 @@ cd godot_project && open -a Godot project.godot
 ### macOS
 ```bash
 brew install cmake                  # Build system
+brew install boost                  # Boost C++ libraries
 brew install --cask godot          # Godot 4.4+
 python3 --version                  # Should be 3.8+ (pre-installed)
 ```
 
 ### Ubuntu/Linux
 ```bash
-sudo apt-get install cmake build-essential libboost-all-dev
+sudo apt-get install cmake build-essential
+sudo apt-get install libboost-log-dev libboost-system-dev libboost-filesystem-dev
 # Download Godot 4.4+ from godotengine.org
 ```
 
@@ -38,6 +40,7 @@ chmod +x build.sh
 ```
 
 Automatically:
+- Checks/installs Boost (if needed)
 - Creates Python venv + installs SCons
 - Clones/updates godot-cpp (4.4 branch)
 - Builds godot-cpp bindings
@@ -117,6 +120,12 @@ fenrir/
 ```bash
 brew install cmake  # macOS
 sudo apt-get install cmake  # Linux
+```
+
+### "Boost not found"
+```bash
+brew install boost  # macOS
+sudo apt-get install libboost-all-dev  # Linux
 ```
 
 ### "Library not loading in Godot"

@@ -33,3 +33,4 @@ venv/
 .venv/
 
 external/
+!external/versions.txt

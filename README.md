@@ -21,13 +21,18 @@ Grand strategy game (Dwarf Fortress + Victoria 2 style) with granular economic s
 ## Quick Start
 
 ```bash
-brew install cmake
+# macOS: brew install cmake boost
+# Linux: sudo apt-get install cmake libboost-all-dev
+
 chmod +x build.sh
 ./build.sh
-cd godot_project && open -a Godot project.godot
 ```
 
-Press F5 to run, Space to test C++ integration.
+The build script will:
+- Auto-detect your platform (macOS/Linux)
+- Check/install dependencies
+- Build everything
+- Show platform-specific run instructions
 
 ## Documentation
 
@@ -54,8 +59,8 @@ fenrir/
 
 ## Development
 
-**Code Style**: Google C++ Style Guide - see `docs/STYLE_GUIDE.md`  
+**Code Style**: Google C++ Style Guide  
 **File Extensions**: `.hh` for headers, `.cc` for implementation  
 **Formatting**: Run `clang-format -i <file>` before committing  
-**LLM Agents**: Read `llm-system-prompts/` before starting work  
-**Dependencies**: See `external/versions.txt` for version requirements 
+**Platforms**: macOS (primary), Linux (supported)  
+**LLM Agents**: Read `llm-system-prompts/` before starting work 

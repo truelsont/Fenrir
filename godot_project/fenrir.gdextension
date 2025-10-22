@@ -5,3 +5,5 @@ compatibility_minimum = "4.4"
 [libraries]
 macos.debug = "res://../bin/libfenrir.dylib"
 macos.release = "res://../bin/libfenrir.dylib"
+linux.debug.x86_64 = "res://../bin/libfenrir.so"
+linux.release.x86_64 = "res://../bin/libfenrir.so"

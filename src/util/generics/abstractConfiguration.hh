@@ -10,5 +10,6 @@ with support for loading in json
 namespace  fenrir {
 class AbstractConfiguration {
 public:
+// To do should handle the from and to json 
 };    
 }

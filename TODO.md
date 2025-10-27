@@ -113,6 +113,9 @@
 - [ ] Documentation (Doxygen or similar)
 - [ ] Performance profiling tools
 
+## Performance Optimizations
+- [ ] **Map viewport rendering threshold**: Only regenerate texture when camera moves beyond threshold (e.g., 50 pixels) instead of every frame. Currently in `src/godot/game_node.cc::get_world_texture_viewport()` - regenerates on every call. Add threshold check using `last_viewport_x_` and `last_viewport_y_` members.
+
 ## Backlog (Post-MVP)
 - [ ] More goods (100+ commodities)
 - [ ] Complex production chains (iron → tools → machines)

@@ -18,6 +18,8 @@ class GameNode : public ::godot::Node {
  private:
   int tick_count_ = 0;
   fenrir::WorldManager world_manager_;
+  int last_viewport_x_ = -1;
+  int last_viewport_y_ = -1;
 
  protected:
   static void _bind_methods();
@@ -34,6 +36,8 @@ class GameNode : public ::godot::Node {
   void hello_world();
   int get_tick_count() const;
   ::godot::Ref<::godot::ImageTexture> get_world_texture();
+  ::godot::Ref<::godot::ImageTexture> get_world_texture_viewport(
+      int x, int y, int width, int height);
 };
 
 }  // namespace godot

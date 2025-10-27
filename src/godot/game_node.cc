@@ -21,13 +21,14 @@ GameNode::~GameNode() {
 }
 
 void GameNode::_bind_methods() {
-  // Expose methods to GDScript
   ::godot::ClassDB::bind_method(::godot::D_METHOD("hello_world"),
                                  &GameNode::hello_world);
   ::godot::ClassDB::bind_method(::godot::D_METHOD("get_tick_count"),
                                  &GameNode::get_tick_count);
   ::godot::ClassDB::bind_method(::godot::D_METHOD("get_world_texture"),
                                  &GameNode::get_world_texture);
+  ::godot::ClassDB::bind_method(::godot::D_METHOD("get_world_texture_viewport", "x", "y", "width", "height"),
+                                 &GameNode::get_world_texture_viewport);
 }
 
 void GameNode::_ready() {
@@ -49,7 +50,24 @@ int GameNode::get_tick_count() const {
 }
 
 ::godot::Ref<::godot::ImageTexture> GameNode::get_world_texture() {
-  return world_manager_.createImageTexture();
+  fenrir::WorldManager::rendering_options_t rendering_options;
+  rendering_options.map_mode = fenrir::WorldManager::kOWNER;
+  rendering_options.view_port_x = 0;
+  rendering_options.view_port_y = 0;
+  rendering_options.view_port_width = 1280;
+  rendering_options.view_port_height = 720;
+  return world_manager_.createImageTexture(rendering_options);
+}
+
+::godot::Ref<::godot::ImageTexture> GameNode::get_world_texture_viewport(
+    int x, int y, int width, int height) {
+  fenrir::WorldManager::rendering_options_t rendering_options;
+  rendering_options.map_mode = fenrir::WorldManager::kPROVINCE_DEBUG; 
+  rendering_options.view_port_x = x;
+  rendering_options.view_port_y = y;
+  rendering_options.view_port_width = width;
+  rendering_options.view_port_height = height;
+  return world_manager_.createImageTexture(rendering_options);
 }
 
 }  // namespace godot

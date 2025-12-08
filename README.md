@@ -13,16 +13,17 @@ Grand strategy game (Dwarf Fortress + Victoria 2 style) with granular economic s
 
 ## Tech Stack
 
-- **C++17** + **Godot 4.4** + **CMake**
+- **C++17** + **Raylib 5.0** + **Dear ImGui** + **CMake**
+- **Boost 1.85.0**: Logging, graphs, random (vendored)
 - **Compute Facade**: Task-based (CPU/GPU/ML)
 - **Data Abstraction**: Simulated + real-world sources
-- **Future**: Boost, LibTorch, Vulkan/CUDA/Metal
+- **Future**: LibTorch, Vulkan/CUDA/Metal
 
 ## Quick Start
 
 ```bash
-# macOS: brew install cmake boost
-# Linux: sudo apt-get install cmake libboost-all-dev
+# macOS: brew install cmake
+# Linux: sudo apt-get install cmake
 
 chmod +x build.sh
 ./build.sh
@@ -46,10 +47,14 @@ The build script will:
 ```
 fenrir/
 ├── src/                # C++ engine code (.hh/.cc, Google style)
-│   └── godot/          # Godot integration layer
-├── godot_project/      # Godot project files
-├── bin/                # Compiled libraries
-├── external/           # Dependencies (godot-cpp, cmake)
+│   ├── main.cc         # Application entry point
+│   ├── ui/             # Rendering and UI layer
+│   ├── state/          # World state management
+│   ├── engine/         # Simulation engines
+│   ├── compute/        # Compute facade
+│   └── util/           # Utilities
+├── bin/                # Compiled executable
+├── external/           # Dependencies (raylib, imgui, boost)
 ├── docs/               # Documentation
 │   ├── SETUP.md        # Build instructions
 │   ├── ARCHITECTURE.md # System design

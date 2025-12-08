@@ -3,9 +3,6 @@
 #include <vector>
 #include <mutex>
 #include <cstring>
-#include <godot_cpp/classes/image.hpp>
-#include <godot_cpp/classes/image_texture.hpp>
-#include <godot_cpp/variant/packed_byte_array.hpp>
 #include "abstractService.hh"
 #include "abstractConfiguration.hh"
 #include "constants.hh"
@@ -92,7 +89,7 @@ public:
     } rendering_options_t;
     
     
-    godot::Ref<godot::ImageTexture> createImageTexture(rendering_options_t rendering_options);
+    std::vector<pixel> createImageData(rendering_options_t rendering_options);
 
     void markCacheDirty();
 
@@ -102,7 +99,7 @@ public:
 
 private:
     void regeneratePixelsBuffer(const std::vector<province_t>& province_snapshot, map_mode_t mode);
-    godot::Ref<godot::ImageTexture> extractViewport(int x, int y, int vp_width, int vp_height);
+    std::vector<pixel> extractViewport(int x, int y, int vp_width, int vp_height);
     pixel getColorForProvince(const province_t& prov, map_mode_t mode);
 
     std::vector<pixel> pixels_;

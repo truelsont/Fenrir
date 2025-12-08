@@ -3,13 +3,10 @@
 
 #include "worldManager.hh"
 #include <algorithm>
-#include <godot_cpp/classes/image.hpp>
-#include <godot_cpp/classes/image_texture.hpp>
-#include <godot_cpp/variant/packed_byte_array.hpp>
 
 namespace fenrir {
 
-godot::Ref<godot::ImageTexture> WorldManager::createImageTexture(rendering_options_t rendering_options) {
+std::vector<WorldManager::pixel> WorldManager::createImageData(rendering_options_t rendering_options) {
     if (rendering_options.map_mode != cached_map_mode_ || pixels_cache_dirty_) {
         std::vector<province_t> province_snapshot;
         {
@@ -42,38 +39,25 @@ void WorldManager::regeneratePixelsBuffer(const std::vector<province_t>& provinc
     }
 }
 
-godot::Ref<godot::ImageTexture> WorldManager::extractViewport(int x, int y, int vp_width, int vp_height) {
+std::vector<WorldManager::pixel> WorldManager::extractViewport(int x, int y, int vp_width, int vp_height) {
     int clamped_x = std::max(0, std::min(x, static_cast<int>(width)));
     int clamped_y = std::max(0, std::min(y, static_cast<int>(height)));
     int clamped_width = std::min(vp_width, static_cast<int>(width) - clamped_x);
     int clamped_height = std::min(vp_height, static_cast<int>(height) - clamped_y);
     
-    godot::PackedByteArray byte_array;
-    byte_array.resize(clamped_width * clamped_height * 4);
+    std::vector<pixel> viewport_pixels;
+    viewport_pixels.resize(clamped_width * clamped_height);
     
     for (int row = 0; row < clamped_height; row++) {
         int src_offset = ((clamped_y + row) * width + clamped_x);
         int dst_offset = row * clamped_width;
         
         for (int col = 0; col < clamped_width; col++) {
-            const pixel& p = pixels_[src_offset + col];
-            int byte_idx = (dst_offset + col) * 4;
-            byte_array[byte_idx + 0] = p.r;
-            byte_array[byte_idx + 1] = p.g;
-            byte_array[byte_idx + 2] = p.b;
-            byte_array[byte_idx + 3] = p.a;
+            viewport_pixels[dst_offset + col] = pixels_[src_offset + col];
         }
     }
     
-    godot::Ref<godot::Image> image = godot::Image::create_from_data(
-        clamped_width,
-        clamped_height,
-        false,
-        godot::Image::FORMAT_RGBA8,
-        byte_array
-    );
-    
-    return godot::ImageTexture::create_from_image(image);
+    return viewport_pixels;
 }
 
 WorldManager::pixel WorldManager::getColorForProvince(const province_t& prov, map_mode_t mode) {

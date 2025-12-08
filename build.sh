@@ -4,6 +4,9 @@ set -e
 echo "=== Fenrir Build Script ==="
 echo ""
 
+# Add common cmake paths to PATH
+export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+
 # Check for clean flag
 if [[ "$1" == "clean" ]]; then
     echo "Cleaning build directory..."
@@ -40,96 +43,51 @@ fi
 
 echo "✓ CMake found: $(cmake --version | head -n 1)"
 
-# Step 2: Check for Boost
-echo "Checking for Boost..."
-if [[ "$OS" == "macos" ]]; then
-    if brew list boost &> /dev/null 2>&1; then
-        echo "✓ Boost found: $(brew list --versions boost)"
-    else
-        echo "Boost not found. Installing..."
-        brew install boost
-        echo "✓ Boost installed"
-    fi
+# Step 2: Setup Boost submodule
+echo "Setting up Boost..."
+if [ ! -d "external/boost/.git" ]; then
+    echo "Initializing Boost submodule..."
+    git submodule update --init external/boost
+    cd external/boost
+    git checkout boost-1.85.0
+    echo "Installing Boost dependencies..."
+    git submodule update --init tools/boostdep tools/build
+    for lib in log filesystem system thread; do
+        python3 tools/boostdep/depinst/depinst.py --include example $lib
+    done
+    cd ../..
+    echo "✓ Boost 1.85.0 initialized"
 else
-    # Linux - check if boost is installed
-    if ldconfig -p | grep -q libboost_log; then
-        echo "✓ Boost found"
-    else
-        echo "ERROR: Boost not found!"
-        echo "Install with: sudo apt-get install libboost-all-dev"
-        exit 1
-    fi
+    echo "✓ Boost submodule already initialized"
 fi
 
 echo ""
 
-# Step 3: Setup Python virtual environment
-if [ ! -d ".venv" ]; then
-    echo "Creating Python virtual environment..."
-    python3 -m venv .venv
-    echo "✓ Virtual environment created"
+# Step 3: Setup Raylib submodule
+echo "Setting up Raylib..."
+if [ ! -d "external/raylib/.git" ]; then
+    echo "Initializing Raylib submodule..."
+    git submodule update --init external/raylib
+    echo "✓ Raylib initialized"
 else
-    echo "✓ Virtual environment already exists"
-fi
-
-# Activate virtual environment
-echo "Activating virtual environment..."
-source .venv/bin/activate
-
-# Install SCons if not present
-if ! python -m pip show scons &> /dev/null; then
-    echo "Installing SCons..."
-    pip install scons
-    echo "✓ SCons installed"
-else
-    echo "✓ SCons already installed"
+    echo "✓ Raylib submodule already initialized"
 fi
 
 echo ""
 
-# Step 4: Setup godot-cpp if needed
-if [ ! -d "external/godot-cpp" ]; then
-    echo "Setting up godot-cpp..."
-    git submodule add https://github.com/godotengine/godot-cpp external/godot-cpp
-    cd external/godot-cpp
-    git checkout 4.4
-    git submodule update --init
-    cd ../..
-    echo "✓ godot-cpp cloned"
+# Step 4: Setup Dear ImGui
+echo "Setting up Dear ImGui..."
+if [ ! -d "external/imgui" ]; then
+    echo "Cloning Dear ImGui..."
+    git clone --depth 1 --branch v1.91.5 https://github.com/ocornut/imgui.git external/imgui
+    echo "✓ Dear ImGui cloned"
 else
-    echo "✓ godot-cpp already exists"
-    # Ensure we're on the right branch
-    cd external/godot-cpp
-    CURRENT_BRANCH=$(git branch --show-current)
-    if [ "$CURRENT_BRANCH" != "4.4" ]; then
-        echo "Switching godot-cpp to 4.4 branch..."
-        git checkout 4.4
-        git submodule update --init
-    fi
-    cd ../..
+    echo "✓ Dear ImGui already exists"
 fi
 
-# Step 5: Build godot-cpp
-if [[ "$OS" == "macos" ]]; then
-    GODOT_CPP_LIB="external/godot-cpp/bin/libgodot-cpp.macos.template_debug.universal.a"
-    SCONS_PLATFORM="macos"
-else
-    GODOT_CPP_LIB="external/godot-cpp/bin/libgodot-cpp.linux.template_debug.x86_64.a"
-    SCONS_PLATFORM="linux"
-fi
+echo ""
 
-if [ ! -f "$GODOT_CPP_LIB" ]; then
-    echo ""
-    echo "Building godot-cpp for $OS (this takes a few minutes)..."
-    cd external/godot-cpp
-    python -m SCons platform=$SCONS_PLATFORM target=template_debug
-    cd ../..
-    echo "✓ godot-cpp built"
-else
-    echo "✓ godot-cpp already built"
-fi
-
-# Step 6: Build Fenrir
+# Step 5: Build Fenrir
 echo ""
 echo "Building Fenrir..."
 mkdir -p build
@@ -138,31 +96,22 @@ cmake .. -DCMAKE_BUILD_TYPE=Debug
 make -j$NPROC
 cd ..
 
-# Step 7: Verify output
-if [[ "$OS" == "macos" ]]; then
-    LIB_FILE="bin/libfenrir.dylib"
-else
-    LIB_FILE="bin/libfenrir.so"
-fi
+# Step 6: Verify output
+EXE_FILE="bin/fenrir"
 
-if [ -f "$LIB_FILE" ]; then
+if [ -f "$EXE_FILE" ]; then
     echo ""
     echo "=== BUILD SUCCESS ==="
-    echo "✓ Library: $LIB_FILE"
-    echo "✓ Virtual environment: .venv/"
+    echo "✓ Executable: $EXE_FILE"
     echo "✓ Platform: $OS"
     echo ""
     echo "Next steps:"
-    echo "1. cd godot_project"
-    if [[ "$OS" == "macos" ]]; then
-        echo "2. open -a Godot project.godot"
-    else
-        echo "2. godot project.godot"
-    fi
-    echo "3. Press F5 to run"
+    echo "1. ./bin/fenrir"
+    echo "2. Use arrow keys to pan, mouse wheel to zoom"
+    echo "3. Press Space for debug output"
 else
     echo ""
     echo "=== BUILD FAILED ==="
-    echo "Library not found at $LIB_FILE"
+    echo "Executable not found at $EXE_FILE"
     exit 1
 fi

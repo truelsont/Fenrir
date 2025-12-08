@@ -12,10 +12,8 @@ CMakeFiles/
 cmake_install.cmake
 Makefile
 
-# Godot
-.godot/
-.import/
-*.import
+# Raylib
+*.o
 
 # IDE
 .vscode/
@@ -32,5 +30,9 @@ __pycache__/
 venv/
 .venv/
 
-external/
+external/*
 !external/versions.txt
+!external/boost
+!external/raylib
+!external/imgui
+

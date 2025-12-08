@@ -1,21 +1,22 @@
 # TODO
 
 ## Phase 0: Foundation (Week 1-2)
-- [ ] CMake setup (C++17, Boost, cross-platform)
-- [X] Project structure (`src/compute/`, `src/engine/`, `src/game/`, `src/godot/`, `src/util/`)
+- [X] CMake setup (C++17, Boost, cross-platform)
+- [X] Project structure (`src/compute/`, `src/engine/`, `src/state/`, `src/ui/`, `src/util/`)
+- [X] Raylib + ImGui integration
 - [ ] CPU backend stub (threadpool, empty task handlers)
 - [ ] Data abstraction layer (`IDataProvider` interface)
 - [ ] Standardized data schema (MarketSnapshot, AgentObservation, etc.)
-- [ ] Godot GDExtension skeleton (`GameNode` class)
-- [ ] Test: Call C++ from Godot, submit compute task
-- [ ] Hello World from cpp engine code
+- [ ] Raylib main loop with WorldManager integration
+- [ ] UI layer (renderer, input handler, ImGui overlay)
+- [ ] Test: Render world texture, handle input, display debug UI
 
 ## Phase 1: Map Generation (Week 3-4)
 - [ ] Compute facade interface (`IComputeBackend`, task-based API)
 - [ ] Heightmap generation (Perlin noise via compute facade)
 - [ ] Voronoi provinces (Lloyd's relaxation via compute facade)
 - [ ] Resource assignment (iron, wheat, etc. per province)
-- [ ] Godot rendering (colored tiles for provinces)
+- [ ] Raylib rendering (colored tiles for provinces)
 - [ ] Unit tests for sanity generation 
 - [ ] Better Spec for map 
 - [ ] Determisitc generation and compare when serialized
@@ -33,8 +34,8 @@
 - [ ] Test: Agents make decisions from observations only
 
 ## Phase 3: Economy Visualization (Week 8)
-- [ ] Expose market data to Godot (prices, volumes)
-- [ ] UI: Price charts, production stats
+- [ ] Expose market data to UI (prices, volumes)
+- [ ] ImGui panels: Price charts, production stats
 - [ ] Visualization: Color provinces by wealth/production
 - [ ] Time controls (pause, speed, step)
 - [ ] Test: Observable cause-effect (drought → price spike)

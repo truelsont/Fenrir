@@ -5,11 +5,11 @@ Complete guide for building and running Fenrir.
 ## Quick Start (5 minutes)
 
 ```bash
-brew install cmake
+brew install cmake  # macOS only
 chmod +x build.sh
 ./build.sh
-cd godot_project && open -a Godot project.godot
-# Press F5 to run, Space to test C++ integration
+./bin/fenrir
+# Use arrow keys to pan, mouse wheel to zoom, Space for debug
 ```
 
 ## Prerequisites
@@ -17,19 +17,19 @@ cd godot_project && open -a Godot project.godot
 ### macOS
 ```bash
 brew install cmake                  # Build system
-brew install boost                  # Boost C++ libraries
-brew install --cask godot          # Godot 4.4+
 python3 --version                  # Should be 3.8+ (pre-installed)
 ```
 
 ### Ubuntu/Linux
 ```bash
 sudo apt-get install cmake build-essential
-sudo apt-get install libboost-log-dev libboost-system-dev libboost-filesystem-dev
-# Download Godot 4.4+ from godotengine.org
+sudo apt-get install libgl1-mesa-dev libx11-dev  # For Raylib
 ```
 
-**Note**: SCons is auto-installed in `.venv/` by build script.
+**Note**: 
+- Boost 1.85.0 is vendored as a git submodule (no system install needed)
+- Raylib 5.0+ is vendored as a git submodule
+- Dear ImGui 1.90.0 is cloned during build
 
 ## Build Options
 
@@ -40,75 +40,72 @@ chmod +x build.sh
 ```
 
 Automatically:
-- Checks/installs Boost (if needed)
-- Creates Python venv + installs SCons
-- Clones/updates godot-cpp (4.4 branch)
-- Builds godot-cpp bindings
-- Builds Fenrir C++ library
+- Initializes Boost 1.85.0 submodule (if needed)
+- Initializes Raylib submodule (if needed)
+- Clones Dear ImGui (if needed)
+- Builds Raylib
+- Builds Fenrir executable
 
 ### Option 2: Manual Build
 
-#### macOS
+#### macOS / Linux
 ```bash
-# 1. Setup Python venv
-python3 -m venv .venv
-source .venv/bin/activate
-pip install scons
+# 1. Initialize submodules
+git submodule update --init external/boost external/raylib
+cd external/boost && git checkout boost-1.85.0 && cd ../..
 
-# 2. Build godot-cpp
-cd external/godot-cpp
-git checkout 4.4
-git submodule update --init
-python -m SCons platform=macos target=template_debug
+# 2. Setup Boost dependencies
+cd external/boost
+git submodule update --init tools/boostdep tools/build
+for lib in log filesystem system thread; do
+    python3 tools/boostdep/depinst/depinst.py --include example $lib
+done
 cd ../..
 
-# 3. Build Fenrir
+# 3. Clone Dear ImGui
+git clone --depth 1 --branch v1.90.0 https://github.com/ocornut/imgui.git external/imgui
+curl -L https://raw.githubusercontent.com/raylib-extras/rlImGui/main/rlImGui.h -o external/imgui/rlImGui.h
+curl -L https://raw.githubusercontent.com/raylib-extras/rlImGui/main/rlImGui.cpp -o external/imgui/rlImGui.cpp
+
+# 4. Build Fenrir
 mkdir build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Debug
-make -j$(sysctl -n hw.ncpu)
+make -j$(nproc)  # or $(sysctl -n hw.ncpu) on macOS
 cd ..
 ```
 
-#### Linux
-```bash
-# Same as macOS, but use:
-python -m SCons platform=linux target=template_debug
-make -j$(nproc)
-```
-
-## Running in Godot
+## Running Fenrir
 
 ```bash
-cd godot_project
-open -a Godot project.godot  # macOS
-# OR
-godot project.godot          # Linux
+./bin/fenrir
 ```
 
-**In Godot**:
-1. Press F5 to run
-2. Press Space to call C++ code
-3. Console should show: "Hello from Fenrir C++ engine!"
+**Controls**:
+- Arrow keys: Pan camera
+- Mouse wheel: Zoom in/out
+- Space: Trigger debug output
+- ESC: Exit
 
 ## Project Structure
 
 ```
 fenrir/
 ├── src/                    # C++ engine code
-│   └── godot/              # Godot integration
-│       ├── game_node.hh
-│       ├── game_node.cc
-│       └── register_types.cc
-├── godot_project/          # Godot project files
-│   ├── project.godot
-│   ├── fenrir.gdextension
-│   ├── main.gd
-│   └── main.tscn
-├── bin/                    # Compiled libraries
-│   └── libfenrir.dylib
+│   ├── main.cc             # Application entry point
+│   ├── ui/                 # Rendering and UI
+│   │   ├── renderer.hh/cc
+│   │   ├── input_handler.hh/cc
+│   │   └── ui_overlay.hh/cc
+│   ├── state/              # World state
+│   ├── engine/             # Simulation engines
+│   ├── compute/            # Compute facade
+│   └── util/               # Utilities
+├── bin/                    # Compiled executable
+│   └── fenrir
 ├── external/               # Dependencies
-│   ├── godot-cpp/          # Godot C++ bindings
-│   └── cmake-4.1.2/        # CMake source (optional)
+│   ├── raylib/             # Raylib 5.0+ (submodule)
+│   ├── imgui/              # Dear ImGui 1.90.0 (cloned)
+│   └── boost/              # Boost 1.85.0 LTS (submodule)
 ├── docs/                   # Documentation
 ├── build.sh                # Automated build script
 └── CMakeLists.txt          # Build configuration
@@ -124,44 +121,31 @@ sudo apt-get install cmake  # Linux
 
 ### "Boost not found"
 ```bash
-brew install boost  # macOS
-sudo apt-get install libboost-all-dev  # Linux
+# Boost is vendored, ensure submodule is initialized
+git submodule update --init external/boost
+cd external/boost && git checkout boost-1.85.0
 ```
 
-### "Library not loading in Godot"
+### "Executable crashes on startup"
 ```bash
 # Clean rebuild
-rm -rf build/ bin/ external/godot-cpp/bin/
-./build.sh
-# Restart Godot completely
-```
-
-### "GameNode class not found"
-- Ensure `godot_project/fenrir.gdextension` exists
-- Check it points to `res://../bin/libfenrir.dylib`
-- Restart Godot editor
-- Check Output tab for GDExtension errors
-
-### "Version mismatch" errors
-```bash
-# Ensure godot-cpp matches your Godot version
-cd external/godot-cpp
-git checkout 4.4  # Or 4.3, 4.2, etc.
-git submodule update --init
-cd ../..
 rm -rf build/ bin/
 ./build.sh
 ```
 
-### "godot-cpp build failed"
+### "Raylib not found"
 ```bash
-# Install Xcode tools (macOS)
-xcode-select --install
+# Ensure submodule is initialized
+git submodule update --init external/raylib
+```
 
-# Or activate venv and retry
-source .venv/bin/activate
-cd external/godot-cpp
-python -m SCons platform=macos target=template_debug
+### "ImGui errors"
+```bash
+# Re-download ImGui
+rm -rf external/imgui
+git clone --depth 1 --branch v1.90.0 https://github.com/ocornut/imgui.git external/imgui
+curl -L https://raw.githubusercontent.com/raylib-extras/rlImGui/main/rlImGui.h -o external/imgui/rlImGui.h
+curl -L https://raw.githubusercontent.com/raylib-extras/rlImGui/main/rlImGui.cpp -o external/imgui/rlImGui.cpp
 ```
 
 ## Clean Build
@@ -178,38 +162,25 @@ rm -rf build/ bin/ lib/ external/godot-cpp/bin/ .venv/
 
 1. **Edit C++ code** in `src/`
 2. **Rebuild**: `cd build && make`
-3. **Restart Godot** (or Project → Reload Current Project)
+3. **Run**: `./bin/fenrir`
 4. **Test** changes
 
-**Tip**: Close Godot while rebuilding to avoid file locks.
+**Tip**: Use `make -j$(nproc)` for faster parallel builds.
 
-## Building CMake from Source (Optional)
-
-If you need a custom CMake build (30+ minutes):
-
-```bash
-cd external/cmake-4.1.2
-./bootstrap --prefix=/usr/local
-make -j$(sysctl -n hw.ncpu)
-sudo make install
-cmake --version
-```
-
-**Recommendation**: Use Homebrew/apt instead.
 
 ## Verification
 
 After successful build:
 
 ```bash
-# Library exists
-ls -la bin/libfenrir.dylib
+# Executable exists
+ls -la bin/fenrir
 
-# godot-cpp built
-ls external/godot-cpp/bin/
+# Raylib built
+ls external/raylib/src/libraylib.a
 
-# Correct branch
-git -C external/godot-cpp branch --show-current  # Should be 4.4
+# ImGui exists
+ls external/imgui/*.cpp
 ```
 
 ## Next Steps

@@ -1,3 +1,6 @@
-[submodule "external/godot-cpp"]
-	path = external/godot-cpp
-	url = https://github.com/godotengine/godot-cpp
+[submodule "external/boost"]
+	path = external/boost
+	url = https://github.com/boostorg/boost.git
+[submodule "external/raylib"]
+	path = external/raylib
+	url = https://github.com/raysan5/raylib.git

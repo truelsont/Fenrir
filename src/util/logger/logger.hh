@@ -13,3 +13,4 @@ public:
         std::cout << message << std::endl;
     }
 };
+}  // namespace fenrir

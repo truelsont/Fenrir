@@ -23,20 +23,22 @@ message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
 # Output directory
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
-# Find Boost (required)
-# Boost 1.89+ uses new CMake config, older versions use FindBoost module
+# Find Boost (vendored in external/boost)
+set(BOOST_ROOT ${CMAKE_SOURCE_DIR}/external/boost)
+set(Boost_NO_SYSTEM_PATHS ON)
 set(Boost_NO_WARN_NEW_VERSIONS ON)
 
-# Try new-style config first (Boost 1.89+)
-find_package(Boost 1.70 CONFIG QUIET COMPONENTS log filesystem)
+# Try new-style config first (Boost 1.70+)
+find_package(Boost 1.85 CONFIG QUIET COMPONENTS log filesystem)
 if(NOT Boost_FOUND)
     # Fall back to old FindBoost module
-    find_package(Boost 1.70 REQUIRED COMPONENTS log system filesystem thread)
+    find_package(Boost 1.85 REQUIRED COMPONENTS log system filesystem thread)
 endif()
 
 if(Boost_FOUND)
-    message(STATUS "✓ Boost version: ${Boost_VERSION}")
+    message(STATUS "✓ Boost version: ${Boost_VERSION} (vendored)")
     if(TARGET Boost::log)
         message(STATUS "✓ Using Boost::log target (new style)")
         set(BOOST_LIBS Boost::log Boost::filesystem)
@@ -46,17 +48,33 @@ if(Boost_FOUND)
     endif()
 endif()
 
-# Add godot-cpp if it exists
-if(EXISTS ${CMAKE_SOURCE_DIR}/external/godot-cpp/CMakeLists.txt)
-    message(STATUS "Found godot-cpp, building GDExtension")
-    add_subdirectory(external/godot-cpp)
-
+# Add Raylib if it exists
+if(EXISTS ${CMAKE_SOURCE_DIR}/external/raylib/CMakeLists.txt)
+    message(STATUS "Found Raylib, building application")
     
-    # Create minimal GDExtension library
-    add_library(fenrir SHARED
-        src/godot/register_types.cc
-        src/godot/game_node.cc
+    # Raylib build options
+    set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    set(BUILD_GAMES OFF CACHE BOOL "" FORCE)
+    add_subdirectory(external/raylib)
+    
+    # Dear ImGui sources
+    set(IMGUI_DIR ${CMAKE_SOURCE_DIR}/external/imgui)
+    set(IMGUI_SOURCES
+        ${IMGUI_DIR}/imgui.cpp
+        ${IMGUI_DIR}/imgui_demo.cpp
+        ${IMGUI_DIR}/imgui_draw.cpp
+        ${IMGUI_DIR}/imgui_tables.cpp
+        ${IMGUI_DIR}/imgui_widgets.cpp
+    )
+    
+    # Create executable
+    add_executable(fenrir
+        src/main.cc
+        src/ui/renderer.cc
+        src/ui/input_handler.cc
+        src/ui/ui_overlay.cc
         src/state/worldState/worldManager.cc
+        ${IMGUI_SOURCES}
     )
     
     target_include_directories(fenrir PRIVATE
@@ -65,32 +83,37 @@ if(EXISTS ${CMAKE_SOURCE_DIR}/external/godot-cpp/CMakeLists.txt)
         ${CMAKE_SOURCE_DIR}/src/util
         ${CMAKE_SOURCE_DIR}/src/util/generics
         ${CMAKE_SOURCE_DIR}/src/state/worldState
+        ${CMAKE_SOURCE_DIR}/src/ui
+        ${IMGUI_DIR}
         ${Boost_INCLUDE_DIRS}
     )
     
     target_link_libraries(fenrir PRIVATE
-        godot-cpp
+        raylib
         ${BOOST_LIBS}
     )
     
     # Platform-specific settings
     if(MACOS)
-        set_target_properties(fenrir PROPERTIES
-            OUTPUT_NAME "libfenrir"
-            PREFIX ""
-            SUFFIX ".dylib"
+        target_link_libraries(fenrir PRIVATE
+            "-framework IOKit"
+            "-framework Cocoa"
+            "-framework OpenGL"
         )
-        message(STATUS "Output: ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libfenrir.dylib")
+        message(STATUS "Output: ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/fenrir")
     elseif(LINUX)
-        set_target_properties(fenrir PROPERTIES
-            OUTPUT_NAME "libfenrir"
-            PREFIX ""
-            SUFFIX ".so"
+        target_link_libraries(fenrir PRIVATE
+            GL
+            m
+            pthread
+            dl
+            rt
+            X11
         )
-        message(STATUS "Output: ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libfenrir.so")
+        message(STATUS "Output: ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/fenrir")
     endif()
 else()
-    message(FATAL_ERROR "godot-cpp not found! Run: git submodule add https://github.com/godotengine/godot-cpp external/godot-cpp")    
+    message(FATAL_ERROR "Raylib not found! Run: git submodule add https://github.com/raysan5/raylib external/raylib")    
 endif()
 
 

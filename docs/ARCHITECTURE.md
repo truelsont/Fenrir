@@ -3,9 +3,9 @@
 ## System Layers
 
 ```
-Godot (UI/Rendering/Input)
+Raylib + ImGui (Rendering/UI/Input)
     ↓ reads state, sends commands
-GameNode (C++ GDExtension Bridge)
+Main Loop (C++ Application)
     ↓ coordinates
 StateManager (Central Coordinator)
     ├── owns → WorldState (Game Data)
@@ -34,38 +34,41 @@ WorldState (for agents/ML)
 ## Tech Stack
 
 - **C++17**: Core engine
-- **Godot 4.4+**: Frontend
+- **Raylib 5.0+**: Rendering, input, window management
+- **Dear ImGui**: UI overlays and debug panels
 - **CMake**: Build system
-- **Boost**: Logging, graphs, random
+- **Boost 1.85.0**: Logging, graphs, random (vendored)
 - **LibTorch**: Agent ML (future)
 - **Vulkan/CUDA/Metal**: GPU compute (future)
 
 ## Module Structure
 
 ```
-libfenrir_util      → Utilities (logging, threading)
-libfenrir_compute   → Compute facade + backends
-libfenrir_game      → Data models, abstractions
-libfenrir_engine    → Simulation engines
-libfenrir_godot.so  → Godot GDExtension
+fenrir (executable) → Main application with Raylib
+    ├── src/main.cc           → Application entry point
+    ├── src/ui/               → Rendering and UI layer
+    ├── src/state/            → World state management
+    ├── src/engine/           → Simulation engines
+    ├── src/compute/          → Compute facade + backends
+    └── src/util/             → Utilities (logging, threading)
 ```
 
 ## Data Flow
 
 ### Simulation Tick
-1. **Godot** calls `GameNode._process(delta)`
-2. **GameNode** calls `StateManager.tick(delta)`
-3. **StateManager** executes queued player commands
-4. **StateManager** calls each engine's `tick(WorldState&, delta)`
-5. **Engines** mutate WorldState, submit tasks to Compute Facade
-6. **Compute Facade** executes heavy tasks (CPU/GPU)
-7. **StateManager** increments game time
-8. **Godot** reads WorldState (const) for rendering
+1. **Main Loop** calls `StateManager.tick(delta)` each frame
+2. **StateManager** executes queued player commands
+3. **StateManager** calls each engine's `tick(WorldState&, delta)`
+4. **Engines** mutate WorldState, submit tasks to Compute Facade
+5. **Compute Facade** executes heavy tasks (CPU/GPU)
+6. **StateManager** increments game time
+7. **Renderer** reads WorldState (const) for rendering
+8. **ImGui** displays UI overlays with WorldState data
 
 ### Player Actions
-1. **Player** clicks button in Godot UI
-2. **GDScript** calls `GameNode.setTaxRate(nation_id, rate)`
-3. **GameNode** creates Command, queues in StateManager
+1. **Player** clicks button or presses key
+2. **InputHandler** detects input event
+3. **Main Loop** creates Command, queues in StateManager
 4. **Command** executes on next tick (mutates WorldState)
 
 ### Agent Learning

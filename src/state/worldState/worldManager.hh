@@ -49,16 +49,16 @@ public:
     };
 
 
+    struct Vector2 {
+        float x;
+        float y;
+    };
+
     WorldManager(){
         width = 1280;
         height = 720;
         provinces.resize(width * height);
-        for (size_t i = 0; i < provinces.size(); i++) {
-            provinces[i].id = i;
-            uint32_t owner = ((i / 20) * 5667) % 20;
-            provinces[i].owner = owner;
-            provinces[i].color = owner_to_color_map[owner];
-        }
+        generateVoronoiProvinces();
     }
     ~WorldManager() = default;
 
@@ -98,10 +98,12 @@ public:
     uint32_t height;
 
 private:
+    void generateVoronoiProvinces();
     void regeneratePixelsBuffer(const std::vector<province_t>& province_snapshot, map_mode_t mode);
     std::vector<pixel> extractViewport(int x, int y, int vp_width, int vp_height);
     pixel getColorForProvince(const province_t& prov, map_mode_t mode);
 
+    std::vector<Vector2> province_centers_;
     std::vector<pixel> pixels_;
     mutable std::mutex provinces_mutex_;
     map_mode_t cached_map_mode_ = kPROVINCE_DEBUG;

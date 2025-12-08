@@ -3,8 +3,48 @@
 
 #include "worldManager.hh"
 #include <algorithm>
+#include <cmath>
 
 namespace fenrir {
+
+void WorldManager::generateVoronoiProvinces() {
+    const uint32_t num_centers = 10;
+    
+    province_centers_.resize(num_centers);
+    province_centers_[0] = {200.0f, 150.0f};
+    province_centers_[1] = {640.0f, 100.0f};
+    province_centers_[2] = {1000.0f, 200.0f};
+    province_centers_[3] = {150.0f, 400.0f};
+    province_centers_[4] = {500.0f, 360.0f};
+    province_centers_[5] = {900.0f, 450.0f};
+    province_centers_[6] = {300.0f, 600.0f};
+    province_centers_[7] = {750.0f, 650.0f};
+    province_centers_[8] = {1100.0f, 550.0f};
+    province_centers_[9] = {640.0f, 360.0f};
+    
+    for (size_t i = 0; i < provinces.size(); i++) {
+        uint32_t x = i % width;
+        uint32_t y = i / width;
+        
+        float min_distance = 999999.0f;
+        uint32_t closest_center = 0;
+        
+        for (uint32_t c = 0; c < num_centers; c++) {
+            float dx = static_cast<float>(x) - province_centers_[c].x;
+            float dy = static_cast<float>(y) - province_centers_[c].y;
+            float distance = std::sqrt(dx * dx + dy * dy);
+            
+            if (distance < min_distance) {
+                min_distance = distance;
+                closest_center = c;
+            }
+        }
+        
+        provinces[i].id = i;
+        provinces[i].owner = closest_center;
+        provinces[i].color = owner_to_color_map[closest_center % owner_to_color_map.size()];
+    }
+}
 
 std::vector<WorldManager::pixel> WorldManager::createImageData(rendering_options_t rendering_options) {
     if (rendering_options.map_mode != cached_map_mode_ || pixels_cache_dirty_) {

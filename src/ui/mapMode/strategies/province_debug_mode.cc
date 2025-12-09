@@ -1,4 +1,4 @@
-#include "ProvinceDebugMode.hh"
+#include "province_debug_mode.hh"
 
 namespace fenrir {
 namespace ui {

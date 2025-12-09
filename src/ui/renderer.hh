@@ -2,8 +2,9 @@
 #define FENRIR_SRC_UI_RENDERER_HH_
 
 #include <raylib.h>
-#include "src/state/worldState/worldManager.hh"
+#include "src/state/worldState/world_manager.hh"
 #include "src/util/logger/logger.hh"
+#include "src/ui/mapMode/map_mode_strategy_interface.hh"
 
 namespace fenrir {
 namespace ui {
@@ -21,7 +22,11 @@ class Renderer {
   Renderer();
   ~Renderer();
 
-  Texture2D getWorldTexture(WorldManager& world_manager, const Camera& camera);
+  Texture2D getWorldTexture(
+      WorldManager& world_manager, 
+      const Camera& camera,
+      const MapModeStrategyInterface* strategy
+  );
   void updateCamera(Camera& camera, float delta);
 
  private:

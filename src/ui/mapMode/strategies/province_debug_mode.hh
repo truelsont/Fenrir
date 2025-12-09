@@ -1,12 +1,12 @@
 #ifndef FENRIR_SRC_UI_MAPMODE_STRATEGIES_PROVINCEDEBUGMODE_HH_
 #define FENRIR_SRC_UI_MAPMODE_STRATEGIES_PROVINCEDEBUGMODE_HH_
 
-#include "../IMapModeStrategy.hh"
+#include "../map_mode_strategy_interface.hh"
 
 namespace fenrir {
 namespace ui {
 
-class ProvinceDebugMode : public IMapModeStrategy {
+class ProvinceDebugMode : public MapModeStrategyInterface {
  public:
   WorldManager::pixel getPixelColor(
       const WorldManager::province_t& province,

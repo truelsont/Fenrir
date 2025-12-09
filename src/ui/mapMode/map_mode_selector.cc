@@ -1,4 +1,4 @@
-#include "MapModeSelector.hh"
+#include "map_mode_selector.hh"
 
 namespace fenrir {
 namespace ui {
@@ -12,7 +12,7 @@ void MapModeSelector::initialize(int screen_width, int screen_height) {
   if (!buttons_.empty()) {
     switchMode(buttons_[0].mode_id);
   }
-  logger_.log("MapModeSelector initialized with " + std::to_string(buttons_.size()) + " modes");
+  logger_.Log("MapModeSelector initialized with " + std::to_string(buttons_.size()) + " modes");
 }
 
 void MapModeSelector::buildButtons(int screen_width, int screen_height) {
@@ -110,7 +110,7 @@ void MapModeSelector::switchMode(const std::string& mode_id) {
   current_mode_id_ = mode_id;
   current_strategy_ = registry_.create(mode_id);
   if (current_strategy_) {
-    logger_.log("Switched to map mode: " + current_strategy_->getName());
+    logger_.Log("Switched to map mode: " + current_strategy_->getName());
   }
 }
 

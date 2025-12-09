@@ -3,8 +3,8 @@
 
 #include <raylib.h>
 #include <vector>
-#include <memory>
-#include "MapModeRegistry.hh"
+#include <raylib.h>
+#include "map_mode_registry.hh"
 #include "src/util/logger/logger.hh"
 
 namespace fenrir {
@@ -24,15 +24,15 @@ class MapModeSelector {
   void initialize(int screen_width, int screen_height);
   void update(float delta);
   void draw();
-  
-  const IMapModeStrategy* getCurrentStrategy() const { return current_strategy_.get(); }
+  void handleInput();
+  const MapModeStrategyInterface* getCurrentStrategy() const { return current_strategy_.get(); }
   
  private:
   MapModeRegistry& registry_;
   Logger& logger_;
   
   std::vector<MapModeButton> buttons_;
-  std::unique_ptr<IMapModeStrategy> current_strategy_;
+  std::unique_ptr<MapModeStrategyInterface> current_strategy_;
   std::string current_mode_id_;
   
   int hovered_index_;

@@ -1,4 +1,4 @@
-#include "PoliticalMode.hh"
+#include "political_mode.hh"
 
 namespace fenrir {
 namespace ui {

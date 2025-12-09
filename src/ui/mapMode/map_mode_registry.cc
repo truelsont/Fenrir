@@ -1,4 +1,4 @@
-#include "MapModeRegistry.hh"
+#include "map_mode_registry.hh"
 
 namespace fenrir {
 namespace ui {

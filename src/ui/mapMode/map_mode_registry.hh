@@ -3,16 +3,16 @@
 
 #include <memory>
 #include <unordered_map>
-#include <vector>
 #include <functional>
-#include "IMapModeStrategy.hh"
+#include <memory>
+#include "map_mode_strategy_interface.hh"
 
 namespace fenrir {
 namespace ui {
 
 class MapModeRegistry {
  public:
-  using StrategyPtr = std::unique_ptr<IMapModeStrategy>;
+  using StrategyPtr = std::unique_ptr<MapModeStrategyInterface>;
   using Factory = std::function<StrategyPtr()>;
   
   void registerMode(const std::string& id, Factory factory);

@@ -8,7 +8,7 @@ with support for loading in json
 // #include "nlohmann/json.hpp"
 
 namespace  fenrir {
-class AbstractConfiguration {
+class ConfigurationInterface {
 public:
 // To do should handle the from and to json 
 };    

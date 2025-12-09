@@ -73,7 +73,11 @@ if(EXISTS ${CMAKE_SOURCE_DIR}/external/raylib/CMakeLists.txt)
         src/ui/renderer.cc
         src/ui/input_handler.cc
         src/ui/ui_overlay.cc
-        src/state/worldState/worldManager.cc
+        src/ui/mapMode/map_mode_registry.cc
+        src/ui/mapMode/map_mode_selector.cc
+        src/ui/mapMode/strategies/political_mode.cc
+        src/ui/mapMode/strategies/province_debug_mode.cc
+        src/state/worldState/world_manager.cc
         ${IMGUI_SOURCES}
     )
     

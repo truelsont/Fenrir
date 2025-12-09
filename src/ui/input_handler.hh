@@ -20,11 +20,11 @@ class InputHandler {
  private:
   Logger logger_;
   float camera_speed_ = 300.0f;
-  float zoom_speed_ = 0.1f;
+  float zoom_speed_ = 0.2f;
   float min_zoom_ = 0.5f;
-  float max_zoom_ = 3.0f;
-  int map_width_ = 1280;
-  int map_height_ = 720;
+  float max_zoom_ = 100.0f;
+  int map_width_ = 320;
+  int map_height_ = 180;
   bool trigger_debug_ = false;
 };
 

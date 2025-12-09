@@ -3,6 +3,7 @@
 
 #include <raylib.h>
 #include "src/util/logger/logger.hh"
+#include "src/state/worldState/world_manager.hh"
 
 namespace fenrir {
 namespace ui {
@@ -15,6 +16,12 @@ class UIOverlay {
   void initialize();
   void shutdown();
   void drawDebugInfo(int tick_count, float fps, int camera_x, int camera_y, float zoom);
+  void drawLocationInfo(
+      const WorldManager::location_t* location,
+      const WorldManager::province_t* province,
+      int mouse_x, 
+      int mouse_y
+  );
 
  private:
   Logger logger_;

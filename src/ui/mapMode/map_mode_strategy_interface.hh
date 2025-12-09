@@ -1,15 +1,14 @@
-#ifndef FENRIR_SRC_UI_MAPMODE_IMAPMODESTRATEGY_HH_
-#define FENRIR_SRC_UI_MAPMODE_IMAPMODESTRATEGY_HH_
+#pragma once
 
 #include <string>
-#include "src/state/worldState/worldManager.hh"
+#include "src/state/worldState/world_manager.hh"
 
 namespace fenrir {
 namespace ui {
 
-class IMapModeStrategy {
+class MapModeStrategyInterface {
  public:
-  virtual ~IMapModeStrategy() = default;
+  virtual ~MapModeStrategyInterface() = default;
   
   virtual WorldManager::pixel getPixelColor(
       const WorldManager::province_t& province,
@@ -23,5 +22,3 @@ class IMapModeStrategy {
 
 }  // namespace ui
 }  // namespace fenrir
-
-#endif  // FENRIR_SRC_UI_MAPMODE_IMAPMODESTRATEGY_HH_

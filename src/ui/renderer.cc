@@ -5,40 +5,61 @@ namespace fenrir {
 namespace ui {
 
 Renderer::Renderer() {
-  logger_.log("Renderer initialized");
+  logger_.Log("Renderer initialized");
 }
 
 Renderer::~Renderer() {
   if (texture_loaded_) {
     UnloadTexture(current_texture_);
-    logger_.log("Renderer texture unloaded");
+    logger_.Log("Renderer texture unloaded");
   }
 }
 
-Texture2D Renderer::getWorldTexture(WorldManager& world_manager, const Camera& camera) {
+Texture2D Renderer::getWorldTexture(
+    WorldManager& world_manager, 
+    const Camera& camera,
+    const MapModeStrategyInterface* strategy
+) {
   if (texture_loaded_) {
     UnloadTexture(current_texture_);
   }
 
-  WorldManager::rendering_options_t options;
-  options.map_mode = WorldManager::kPROVINCE_DEBUG;
-  options.view_port_x = camera.x;
-  options.view_port_y = camera.y;
-  options.view_port_width = camera.width;
-  options.view_port_height = camera.height;
-
-  auto pixel_data = world_manager.createImageData(options);
-  
-  if (pixel_data.empty()) {
-    logger_.log("ERROR: Failed to create world texture from WorldManager");
+  if (!strategy) {
+    logger_.Log("ERROR: No map mode strategy provided");
     texture_loaded_ = false;
     return current_texture_;
   }
 
+  const int render_width = 800;
+  const int render_height = 600;
+  
+  std::vector<WorldManager::pixel> pixel_data(render_width * render_height);
+  
+  for (int screen_y = 0; screen_y < render_height; screen_y++) {
+    for (int screen_x = 0; screen_x < render_width; screen_x++) {
+      int world_x = camera.x + (screen_x * camera.width) / render_width;
+      int world_y = camera.y + (screen_y * camera.height) / render_height;
+      
+      auto* location = world_manager.getLocationAt(world_x, world_y);
+      if (!location) {
+        pixel_data[screen_y * render_width + screen_x] = {0, 0, 0, 255};
+        continue;
+      }
+      
+      auto* province = world_manager.getProvinceById(location->province_id);
+      if (!province) {
+        pixel_data[screen_y * render_width + screen_x] = {0, 0, 0, 255};
+        continue;
+      }
+      
+      pixel_data[screen_y * render_width + screen_x] = strategy->getPixelColor(*province, world_manager);
+    }
+  }
+
   Image raylib_image = {
     .data = reinterpret_cast<void*>(pixel_data.data()),
-    .width = camera.width,
-    .height = camera.height,
+    .width = render_width,
+    .height = render_height,
     .mipmaps = 1,
     .format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8
   };

@@ -6,6 +6,8 @@ through the codebase
 */
 
 namespace fenrir{
+
+    //@TODO move to relevnet file 
     enum ResourceCodes : uint32_t{
         kRESOURCE_CLEANUP_SUCCESS = 0,
         kFAILED_RESOURCE_CLEANUP = 1

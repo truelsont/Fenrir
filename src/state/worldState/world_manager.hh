@@ -80,6 +80,7 @@ public:
         uint32_t id;
         uint32_t province_id;
         pixel color;
+        uint8_t border_flags; // Bit flags: 1=province, 2=area, 4=region, 8=continent
     };
     using location_t = location;
     
@@ -136,6 +137,10 @@ public:
     
     location_t* getLocationAt(uint32_t x, uint32_t y);
     province_t* getProvinceById(uint32_t province_id);
+    area_t* getAreaById(uint32_t area_id);
+    region_t* getRegionById(uint32_t region_id);
+    
+    void ComputeBorders();
 
     std::vector<location_t> locations;
     std::vector<province_t> provinces;

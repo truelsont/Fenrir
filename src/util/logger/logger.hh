@@ -1,5 +1,4 @@
-#ifndef FENRIR_SRC_UTIL_LOGGER_LOGGER_HH_
-#define FENRIR_SRC_UTIL_LOGGER_LOGGER_HH_
+#pragma once
 
 #include <string>
 #include <iostream>
@@ -19,24 +18,52 @@ enum class LogLevel {
   kError = 4
 };
 
+const char* LevelToString(LogLevel level) {
+  switch (level) {
+    case LogLevel::kTrace: return "TRACE";
+    case LogLevel::kDebug: return "DEBUG";
+    case LogLevel::kInfo: return "INFO";
+    case LogLevel::kWarning: return "WARN";
+    case LogLevel::kError: return "ERROR";
+    default: return "UNKNOWN";
+  }
+}
+
+enum LoggingEndpoints{
+  kConsole,
+  kLoggingEndpointCount
+}; 
+
+typedef struct LoggerSettings{
+  struct ConsoleLoggingSettings {
+    LogLevel console_log_settings = LogLevel::kInfo; 
+  }; 
+} LoggerSettings_t; 
+
+class LoggerInterface {
+
+
+  private:
+
+}; 
+
 class Logger {
  public:
-  Logger() : running_(true) {
+
+  Logger(LoggerSettings_t) : running_(true) {
+
     worker_thread_ = std::thread(&Logger::ProcessQueue, this);
   }
   
   ~Logger() {
     running_ = false;
-    cv_.notify_one();
     if (worker_thread_.joinable()) {
       worker_thread_.join();
     }
   }
 
   void Log(const std::string& message, LogLevel level = LogLevel::kInfo) {
-    std::lock_guard<std::mutex> lock(queue_mutex_);
-    log_queue_.push({level, message});
-    cv_.notify_one();
+    return 
   }
   
   void Trace(const std::string& message) { Log(message, LogLevel::kTrace); }
@@ -53,41 +80,17 @@ class Logger {
 
   void ProcessQueue() {
     while (running_) {
-      std::unique_lock<std::mutex> lock(queue_mutex_);
-      cv_.wait(lock, [this] { return !log_queue_.empty() || !running_; });
-      
-      while (!log_queue_.empty()) {
-        LogEntry entry = log_queue_.front();
-        log_queue_.pop();
-        lock.unlock();
-        
-        // Write to stdout (non-blocking from main thread perspective)
-        std::cout << "[" << LevelToString(entry.level) << "] " 
-                  << entry.message << std::endl;
-        
-        lock.lock();
-      }
-    }
-  }
-  
-  const char* LevelToString(LogLevel level) {
-    switch (level) {
-      case LogLevel::kTrace: return "TRACE";
-      case LogLevel::kDebug: return "DEBUG";
-      case LogLevel::kInfo: return "INFO";
-      case LogLevel::kWarning: return "WARN";
-      case LogLevel::kError: return "ERROR";
-      default: return "UNKNOWN";
+      ; 
     }
   }
 
+  std::array<
+    std::tuple<
   std::queue<LogEntry> log_queue_;
-  std::mutex queue_mutex_;
-  std::condition_variable cv_;
+
   std::thread worker_thread_;
   std::atomic<bool> running_;
+  LoggerSettings settings_; 
 };
 
 }  // namespace fenrir
-
-#endif  // FENRIR_SRC_UTIL_LOGGER_LOGGER_HH_

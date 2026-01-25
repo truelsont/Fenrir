@@ -7,22 +7,50 @@
 #include <unordered_map>
 #include <cstdlib>
 #include <queue>
+#include <iostream>
 
 namespace fenrir {
 
 void WorldManager::generateVoronoiProvinces() {
+    // Simple grid-based location initialization
     for (size_t i = 0; i < locations.size(); i++) {
         locations[i].id = i;
-        locations[i].province_id = 0;
-        locations[i].color = {128, 128, 128, 255};
+        locations[i].province_id = i; // Each location is its own province
+        
+        // Generate a color based on position
+        uint32_t x = i % width;
+        uint32_t y = i / width;
+        locations[i].color = {
+            static_cast<uint8_t>((x * 73) % 256),
+            static_cast<uint8_t>((y * 151) % 256),
+            static_cast<uint8_t>(((x + y) * 223) % 256),
+            255
+        };
+        
+        // Set border flags for grid pattern
+        // Every location has borders on right and bottom edges
+        locations[i].border_flags = 1; // Always show as province border
     }
     
-    mergeLocationsIntoProvinces();
-    computeProvinceCentroids();
-    groupProvincesIntoAreas();
-    groupAreasIntoRegions();
-    groupRegionsIntoContinents();
-    assignOwnersViaVoronoi();
+    // Create one province per location for compatibility
+    provinces.clear();
+    province_id_to_index.clear();
+    
+    for (size_t i = 0; i < locations.size(); i++) {
+        province_t prov;
+        prov.id = i;
+        prov.area_id = 0;
+        prov.owner = 0;
+        prov.color = locations[i].color;
+        prov.location_ids.push_back(i);
+        
+        provinces.push_back(prov);
+        province_id_to_index[i] = i;
+    }
+    
+    std::cout << "[WorldManager] Created simple grid:" << std::endl;
+    std::cout << "  Total locations: " << locations.size() << std::endl;
+    std::cout << "  Grid size: " << width << " x " << height << std::endl;
 }
 
 int WorldManager::findRoot(int x, std::vector<int>& parent) {
@@ -390,6 +418,110 @@ WorldManager::province_t* WorldManager::getProvinceById(uint32_t province_id) {
         return &provinces[it->second];
     }
     return nullptr;
+}
+
+WorldManager::area_t* WorldManager::getAreaById(uint32_t area_id) {
+    auto it = area_id_to_index.find(area_id);
+    if (it != area_id_to_index.end()) {
+        return &areas[it->second];
+    }
+    return nullptr;
+}
+
+WorldManager::region_t* WorldManager::getRegionById(uint32_t region_id) {
+    auto it = region_id_to_index.find(region_id);
+    if (it != region_id_to_index.end()) {
+        return &regions[it->second];
+    }
+    return nullptr;
+}
+
+void WorldManager::ComputeBorders() {
+    // Pre-compute border flags for all locations
+    uint32_t province_border_count = 0;
+    uint32_t area_border_count = 0;
+    uint32_t region_border_count = 0;
+    
+    for (uint32_t y = 0; y < height; y++) {
+        for (uint32_t x = 0; x < width; x++) {
+            uint32_t idx = y * width + x;
+            locations[idx].border_flags = 0;
+            
+            auto* curr_loc = &locations[idx];
+            auto* curr_prov = getProvinceById(curr_loc->province_id);
+            if (!curr_prov) continue;
+            
+            auto* curr_area = getAreaById(curr_prov->area_id);
+            if (!curr_area) continue;
+            
+            auto* curr_region = getRegionById(curr_area->region_id);
+            
+            // Check right neighbor
+            if (x + 1 < width) {
+                auto* right_loc = &locations[idx + 1];
+                auto* right_prov = getProvinceById(right_loc->province_id);
+                
+                // Province border
+                if (right_prov && right_prov->id != curr_prov->id) {
+                    locations[idx].border_flags |= 1;
+                    province_border_count++;
+                }
+                
+                // Area border
+                if (right_prov) {
+                    auto* right_area = getAreaById(right_prov->area_id);
+                    if (right_area && right_area->id != curr_area->id) {
+                        locations[idx].border_flags |= 2;
+                    }
+                    
+                    // Region border
+                    if (right_area && curr_region) {
+                        auto* right_region = getRegionById(right_area->region_id);
+                        if (right_region && right_region->id != curr_region->id) {
+                            locations[idx].border_flags |= 4;
+                        }
+                    }
+                }
+            }
+            
+            // Check bottom neighbor
+            if (y + 1 < height) {
+                auto* bottom_loc = &locations[idx + width];
+                auto* bottom_prov = getProvinceById(bottom_loc->province_id);
+                
+                // Province border
+                if (bottom_prov && bottom_prov->id != curr_prov->id) {
+                    locations[idx].border_flags |= 1;
+                    province_border_count++;
+                }
+                
+                // Area border
+                if (bottom_prov) {
+                    auto* bottom_area = getAreaById(bottom_prov->area_id);
+                    if (bottom_area && bottom_area->id != curr_area->id) {
+                        locations[idx].border_flags |= 2;
+                    }
+                    
+                    // Region border
+                    if (bottom_area && curr_region) {
+                        auto* bottom_region = getRegionById(bottom_area->region_id);
+                        if (bottom_region && bottom_region->id != curr_region->id) {
+                            locations[idx].border_flags |= 4;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    // Log border statistics
+    std::cout << "[WorldManager] Computed borders:" << std::endl;
+    std::cout << "  Province borders: " << province_border_count << " pixels" << std::endl;
+    std::cout << "  Area borders: " << area_border_count << " pixels" << std::endl;
+    std::cout << "  Region borders: " << region_border_count << " pixels" << std::endl;
+    std::cout << "  Total provinces: " << provinces.size() << std::endl;
+    std::cout << "  Total areas: " << areas.size() << std::endl;
+    std::cout << "  Total regions: " << regions.size() << std::endl;
 }
 
 }  // namespace fenrir

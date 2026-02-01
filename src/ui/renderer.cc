@@ -4,8 +4,8 @@
 namespace fenrir {
 namespace ui {
 
-Renderer::Renderer() : logger_(Logger::LogArgs_t{}) {
-  logger_.Log("Renderer initialized");
+Renderer::Renderer() {
+  logger_.Info("Renderer initialized");
 }
 
 Renderer::~Renderer() {

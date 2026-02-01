@@ -2,11 +2,6 @@
 
 #include <string>
 #include <iostream>
-#include <queue>
-#include <mutex>
-#include <thread>
-#include <condition_variable>
-#include <atomic>
 
 namespace fenrir {
 
@@ -18,7 +13,7 @@ enum class LogLevel {
   kError = 4
 };
 
-const char* LevelToString(LogLevel level) {
+inline const char* LevelToString(LogLevel level) {
   switch (level) {
     case LogLevel::kTrace: return "TRACE";
     case LogLevel::kDebug: return "DEBUG";
@@ -29,43 +24,20 @@ const char* LevelToString(LogLevel level) {
   }
 }
 
-enum LoggingEndpoints{
-  kConsole,
-  kLoggingEndpointCount
-}; 
-
-typedef struct LoggerSettings{
-  struct ConsoleLoggingSettings {
-    LogLevel console_log_settings = LogLevel::kInfo; 
-  }; 
-} LoggerSettings_t; 
-
-class LoggerInterface {
-
-
-  private:
-
-}; 
-
+// Simple synchronous logger stub
+// TODO: Replace with async worker thread implementation
 class Logger {
  public:
+  Logger() : min_level_(LogLevel::kInfo) {}
 
-  Logger(LoggerSettings_t) : running_(true) {
+  void SetLevel(LogLevel level) { min_level_ = level; }
 
-    worker_thread_ = std::thread(&Logger::ProcessQueue, this);
-  }
-  
-  ~Logger() {
-    running_ = false;
-    if (worker_thread_.joinable()) {
-      worker_thread_.join();
+  void Log(const std::string& message, LogLevel level = LogLevel::kInfo) {
+    if (level >= min_level_) {
+      std::cout << "[" << LevelToString(level) << "] " << message << std::endl;
     }
   }
 
-  void Log(const std::string& message, LogLevel level = LogLevel::kInfo) {
-    return 
-  }
-  
   void Trace(const std::string& message) { Log(message, LogLevel::kTrace); }
   void Debug(const std::string& message) { Log(message, LogLevel::kDebug); }
   void Info(const std::string& message) { Log(message, LogLevel::kInfo); }
@@ -73,24 +45,7 @@ class Logger {
   void Error(const std::string& message) { Log(message, LogLevel::kError); }
 
  private:
-  struct LogEntry {
-    LogLevel level;
-    std::string message;
-  };
-
-  void ProcessQueue() {
-    while (running_) {
-      ; 
-    }
-  }
-
-  std::array<
-    std::tuple<
-  std::queue<LogEntry> log_queue_;
-
-  std::thread worker_thread_;
-  std::atomic<bool> running_;
-  LoggerSettings settings_; 
+  LogLevel min_level_;
 };
 
 }  // namespace fenrir

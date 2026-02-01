@@ -51,10 +51,30 @@ if(Boost_FOUND)
     endif()
 endif()
 
+# Add Flecs ECS
+if(EXISTS ${CMAKE_SOURCE_DIR}/external/flecs/CMakeLists.txt)
+    message(STATUS "Found Flecs ECS")
+    set(FLECS_STATIC ON CACHE BOOL "" FORCE)
+    add_subdirectory(external/flecs)
+else()
+    message(FATAL_ERROR "Flecs not found! Run: git submodule add https://github.com/SanderMertens/flecs.git external/flecs")
+endif()
+
+# Add FlatBuffers
+if(EXISTS ${CMAKE_SOURCE_DIR}/external/flatbuffers/CMakeLists.txt)
+    message(STATUS "Found FlatBuffers")
+    set(FLATBUFFERS_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(FLATBUFFERS_BUILD_FLATC ON CACHE BOOL "" FORCE)
+    add_subdirectory(external/flatbuffers)
+    set(FLATBUFFERS_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/flatbuffers/include)
+else()
+    message(WARNING "FlatBuffers not found - serialization features disabled")
+endif()
+
 # Add Raylib if it exists
 if(EXISTS ${CMAKE_SOURCE_DIR}/external/raylib/CMakeLists.txt)
     message(STATUS "Found Raylib, building application")
-    
+
     # Raylib build options
     set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
     set(BUILD_GAMES OFF CACHE BOOL "" FORCE)
@@ -93,10 +113,12 @@ if(EXISTS ${CMAKE_SOURCE_DIR}/external/raylib/CMakeLists.txt)
         ${CMAKE_SOURCE_DIR}/src/ui
         ${IMGUI_DIR}
         ${Boost_INCLUDE_DIRS}
+        ${FLATBUFFERS_INCLUDE_DIR}
     )
     
     target_link_libraries(fenrir PRIVATE
         raylib
+        flecs::flecs_static
         ${BOOST_LIBS}
     )
     

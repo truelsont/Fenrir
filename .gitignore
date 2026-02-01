@@ -35,4 +35,7 @@ external/*
 !external/boost
 !external/raylib
 !external/imgui
+!external/rlImGui
+!external/flecs
+!external/flatbuffers
 

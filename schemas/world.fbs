@@ -1,0 +1,145 @@
+// Fenrir World Schema
+// FlatBuffers schema for entity serialization and network sync
+
+namespace fenrir.schema;
+
+// 3D position on globe or in space
+struct Vec3 {
+    x: float;
+    y: float;
+    z: float;
+}
+
+// Geographic coordinate (lat/lon/altitude)
+struct GeoCoord {
+    latitude: float;   // -90 to 90
+    longitude: float;  // -180 to 180
+    altitude: float;   // meters above sea level (negative for ocean floor)
+}
+
+// Entity scale level
+enum ScaleLevel : byte {
+    Orbital = 0,      // Satellites, space stations
+    Continental = 1,  // Globe view, weather systems
+    Regional = 2,     // Countries, major features
+    Provincial = 3,   // Individual provinces, cities
+    Local = 4         // Street level (future)
+}
+
+// Terrain types
+enum TerrainType : byte {
+    Ocean = 0,
+    Plains = 1,
+    Hills = 2,
+    Mountains = 3,
+    Forest = 4,
+    Desert = 5,
+    Tundra = 6,
+    Jungle = 7
+}
+
+// Resource types
+enum ResourceType : byte {
+    None = 0,
+    Iron = 1,
+    Coal = 2,
+    Gold = 3,
+    Wheat = 4,
+    Cotton = 5,
+    Oil = 6,
+    Timber = 7
+}
+
+// Core geographic entity - Province
+table Province {
+    id: uint32;
+    name: string;
+    center: GeoCoord;
+    area_id: uint32;
+    owner_nation_id: uint32;
+    terrain: TerrainType;
+    resources: [ResourceType];
+    population: uint32;
+}
+
+// Area (groups provinces)
+table Area {
+    id: uint32;
+    name: string;
+    region_id: uint32;
+    province_ids: [uint32];
+}
+
+// Region (groups areas)
+table Region {
+    id: uint32;
+    name: string;
+    continent_id: uint32;
+    area_ids: [uint32];
+}
+
+// Nation (political entity)
+table Nation {
+    id: uint32;
+    name: string;
+    capital_province_id: uint32;
+    treasury: float;
+    tax_rate: float;
+    color_r: ubyte;
+    color_g: ubyte;
+    color_b: ubyte;
+}
+
+// Population group (POP)
+table Pop {
+    id: uint32;
+    province_id: uint32;
+    culture_id: uint32;
+    size: uint32;
+    wealth: float;
+    employment_rate: float;
+}
+
+// Orbital body (satellite, station, ship in space)
+table OrbitalEntity {
+    id: uint32;
+    name: string;
+    position: Vec3;           // Position in orbital frame
+    velocity: Vec3;           // Velocity vector
+    semi_major_axis: float;   // Orbital parameter
+    eccentricity: float;
+    inclination: float;
+    owner_nation_id: uint32;
+}
+
+// Market snapshot for a province
+table MarketSnapshot {
+    province_id: uint32;
+    timestamp: uint64;        // Game tick
+    prices: [float];          // Price per good type
+    supply: [float];          // Supply per good type
+    demand: [float];          // Demand per good type
+}
+
+// Agent observation (for ML training)
+table AgentObservation {
+    agent_id: uint32;
+    timestamp: uint64;
+    visible_provinces: [uint32];
+    market_data: [MarketSnapshot];
+    // Fog of war: agent only sees what they should see
+}
+
+// Complete world state for save/load
+table WorldState {
+    tick: uint64;
+    seed: uint64;             // RNG seed for reproducibility
+    provinces: [Province];
+    areas: [Area];
+    regions: [Region];
+    nations: [Nation];
+    pops: [Pop];
+    orbital_entities: [OrbitalEntity];
+}
+
+root_type WorldState;

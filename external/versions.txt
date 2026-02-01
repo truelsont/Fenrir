@@ -1,4 +1,6 @@
 raylib: 5.5+ (submodule)
 imgui: 1.91.5 (cloned, optional - using Raylib text rendering)
 boost: 1.85.0 (vendored, LTS)
+flecs: latest (submodule) - Entity Component System
+flatbuffers: latest (submodule) - Serialization schemas
 cmake: 3.20+

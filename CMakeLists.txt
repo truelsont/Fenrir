@@ -51,6 +51,14 @@ if(Boost_FOUND)
     endif()
 endif()
 
+# Add Eigen (header-only)
+if(EXISTS ${CMAKE_SOURCE_DIR}/external/eigen/CMakeLists.txt)
+    message(STATUS "Found Eigen")
+    set(EIGEN_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/eigen)
+else()
+    message(FATAL_ERROR "Eigen not found! Run: git submodule add https://gitlab.com/libeigen/eigen.git external/eigen")
+endif()
+
 # Add Flecs ECS
 if(EXISTS ${CMAKE_SOURCE_DIR}/external/flecs/CMakeLists.txt)
     message(STATUS "Found Flecs ECS")
@@ -101,6 +109,7 @@ if(EXISTS ${CMAKE_SOURCE_DIR}/external/raylib/CMakeLists.txt)
         src/ui/mapMode/strategies/political_mode.cc
         src/ui/mapMode/strategies/province_debug_mode.cc
         src/state/worldState/world_manager.cc
+        src/world/globe_generator.cc
         ${IMGUI_SOURCES}
     )
     
@@ -141,8 +150,35 @@ if(EXISTS ${CMAKE_SOURCE_DIR}/external/raylib/CMakeLists.txt)
         )
         message(STATUS "Output: ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/fenrir")
     endif()
+    # Globe viewer executable
+    add_executable(globe_viewer
+        src/globe_viewer.cc
+        src/world/globe_generator.cc
+    )
+
+    target_include_directories(globe_viewer PRIVATE
+        ${CMAKE_SOURCE_DIR}
+        ${CMAKE_SOURCE_DIR}/src
+        ${EIGEN_INCLUDE_DIR}
+    )
+
+    target_link_libraries(globe_viewer PRIVATE
+        raylib
+        flecs::flecs_static
+    )
+
+    if(MACOS)
+        target_link_libraries(globe_viewer PRIVATE
+            "-framework IOKit"
+            "-framework Cocoa"
+            "-framework OpenGL"
+        )
+    elseif(LINUX)
+        target_link_libraries(globe_viewer PRIVATE GL m pthread dl rt X11)
+    endif()
+
 else()
-    message(FATAL_ERROR "Raylib not found! Run: git submodule add https://github.com/raysan5/raylib external/raylib")    
+    message(FATAL_ERROR "Raylib not found! Run: git submodule add https://github.com/raysan5/raylib external/raylib")
 endif()
 
 

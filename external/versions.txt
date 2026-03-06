@@ -3,4 +3,5 @@ imgui: 1.91.5 (cloned, optional - using Raylib text rendering)
 boost: 1.85.0 (vendored, LTS)
 flecs: latest (submodule) - Entity Component System
 flatbuffers: latest (submodule) - Serialization schemas
+eigen: 3.4+ (submodule) - Linear algebra, transforms
 cmake: 3.20+

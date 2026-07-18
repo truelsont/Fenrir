@@ -69,8 +69,8 @@ Texture2D Renderer::getWorldTexture(
         auto* bottom_loc = world_manager.getLocationAt(world_x, world_y + 1);
         
         bool draw_border = false;
-        if (right_loc && right_loc->id != location->id) draw_border = true;
-        if (bottom_loc && bottom_loc->id != location->id) draw_border = true;
+        if (right_loc && right_loc->province_id != location->province_id) draw_border = true;
+        if (bottom_loc && bottom_loc->province_id != location->province_id) draw_border = true;
         
         if (draw_border) {
           pixel_data[screen_y * render_width + screen_x] = border_color;

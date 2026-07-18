@@ -1,5 +1,6 @@
 #include "src/ui/input_handler.hh"
 #include <algorithm>
+#include <cmath>
 
 namespace fenrir {
 namespace ui {

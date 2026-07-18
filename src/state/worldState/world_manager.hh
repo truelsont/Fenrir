@@ -60,6 +60,13 @@ public:
         height = 180;
         locations.resize(width * height);
         generateVoronoiProvinces();
+        mergeLocationsIntoProvinces();
+        computeProvinceCentroids();
+        assignOwnersViaVoronoi();
+        groupProvincesIntoAreas();
+        groupAreasIntoRegions();
+        groupRegionsIntoContinents();
+        ComputeBorders();
     }
     ~WorldManager() = default;
 

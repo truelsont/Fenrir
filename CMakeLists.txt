@@ -28,27 +28,16 @@ message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
-# Find Boost (vendored in external/boost)
-set(BOOST_ROOT ${CMAKE_SOURCE_DIR}/external/boost)
-set(Boost_NO_SYSTEM_PATHS ON)
-set(Boost_NO_WARN_NEW_VERSIONS ON)
-
-# Try new-style config first (Boost 1.70+)
-find_package(Boost 1.85 CONFIG QUIET COMPONENTS log filesystem)
-if(NOT Boost_FOUND)
-    # Fall back to old FindBoost module
-    find_package(Boost 1.85 REQUIRED COMPONENTS log system filesystem thread)
-endif()
-
-if(Boost_FOUND)
-    message(STATUS "✓ Boost version: ${Boost_VERSION} (vendored)")
-    if(TARGET Boost::log)
-        message(STATUS "✓ Using Boost::log target (new style)")
-        set(BOOST_LIBS Boost::log Boost::filesystem)
-    else()
-        message(STATUS "✓ Using Boost_LIBRARIES (old style)")
-        set(BOOST_LIBS ${Boost_LIBRARIES})
-    endif()
+# Boost (vendored in external/boost, built via add_subdirectory)
+if(EXISTS ${CMAKE_SOURCE_DIR}/external/boost/CMakeLists.txt)
+    message(STATUS "Building vendored Boost 1.85")
+    set(BOOST_INCLUDE_LIBRARIES log filesystem system thread CACHE STRING "" FORCE)
+    set(BOOST_ENABLE_CMAKE ON CACHE BOOL "" FORCE)
+    set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+    add_subdirectory(external/boost EXCLUDE_FROM_ALL)
+    set(BOOST_LIBS Boost::log Boost::filesystem)
+else()
+    message(FATAL_ERROR "Boost not found! Run: git submodule update --init external/boost")
 endif()
 
 # Add Eigen (header-only)
@@ -101,34 +90,20 @@ if(EXISTS ${CMAKE_SOURCE_DIR}/external/raylib/CMakeLists.txt)
     # Create executable
     add_executable(fenrir
         src/main.cc
-        src/ui/renderer.cc
-        src/ui/input_handler.cc
-        src/ui/ui_overlay.cc
-        src/ui/mapMode/map_mode_registry.cc
-        src/ui/mapMode/map_mode_selector.cc
-        src/ui/mapMode/strategies/political_mode.cc
-        src/ui/mapMode/strategies/province_debug_mode.cc
-        src/state/worldState/world_manager.cc
         src/world/globe_generator.cc
-        ${IMGUI_SOURCES}
+        src/engine/simulation.cc
+        src/engine/systems.cc
     )
     
     target_include_directories(fenrir PRIVATE
         ${CMAKE_SOURCE_DIR}
         ${CMAKE_SOURCE_DIR}/src
-        ${CMAKE_SOURCE_DIR}/src/util
-        ${CMAKE_SOURCE_DIR}/src/util/generics
-        ${CMAKE_SOURCE_DIR}/src/state/worldState
-        ${CMAKE_SOURCE_DIR}/src/ui
-        ${IMGUI_DIR}
-        ${Boost_INCLUDE_DIRS}
-        ${FLATBUFFERS_INCLUDE_DIR}
+        ${EIGEN_INCLUDE_DIR}
     )
     
     target_link_libraries(fenrir PRIVATE
         raylib
         flecs::flecs_static
-        ${BOOST_LIBS}
     )
     
     # Platform-specific settings
@@ -181,4 +156,18 @@ else()
     message(FATAL_ERROR "Raylib not found! Run: git submodule add https://github.com/raysan5/raylib external/raylib")
 endif()
 
-
+# Tests
+add_executable(fenrir_tests
+    tests/test_main.cc
+    src/world/globe_generator.cc
+    src/engine/simulation.cc
+    src/engine/systems.cc
+)
+target_include_directories(fenrir_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/src
+    ${EIGEN_INCLUDE_DIR}
+)
+target_link_libraries(fenrir_tests PRIVATE
+    flecs::flecs_static
+)

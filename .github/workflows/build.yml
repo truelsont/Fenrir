@@ -1,0 +1,73 @@
+name: Build
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            name: Linux
+          - os: macos-latest
+            name: macOS
+          - os: windows-latest
+            name: Windows
+
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y cmake build-essential python3 \
+            libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libgl-dev
+
+      - name: Install macOS dependencies
+        if: runner.os == 'macOS'
+        run: brew install cmake
+
+      - name: Setup Boost submodules
+        shell: bash
+        run: |
+          cd external/boost
+          git checkout boost-1.85.0 2>/dev/null || true
+          git submodule update --init tools/boostdep tools/build tools/cmake
+          git submodule update --init libs/log libs/filesystem libs/system libs/thread libs/config libs/headers
+          python3 tools/boostdep/depinst/depinst.py log
+          python3 tools/boostdep/depinst/depinst.py filesystem
+          python3 tools/boostdep/depinst/depinst.py thread
+
+      - name: Clone Dear ImGui
+        run: git clone --depth 1 --branch v1.91.5 https://github.com/ocornut/imgui.git external/imgui
+
+      - name: Configure (Unix)
+        if: runner.os != 'Windows'
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Debug
+
+      - name: Configure (Windows)
+        if: runner.os == 'Windows'
+        run: cmake -B build
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Verify executable (Unix)
+        if: runner.os != 'Windows'
+        run: test -f bin/fenrir && echo "Build OK" || (echo "Build FAILED" && exit 1)
+
+      - name: Verify executable (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          if (Test-Path "bin\Debug\fenrir.exe" -or Test-Path "bin\fenrir.exe") { Write-Host "Build OK" } else { Write-Host "Build FAILED"; exit 1 }

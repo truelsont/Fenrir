@@ -89,7 +89,7 @@ struct WorldState {
         colors.resize(num_provinces);
         for (uint32_t i = 0; i < num_provinces; ++i) {
             provinces[i] = generateProvinceData(i, seed);
-            colors[i] = terrainColor(provinces[i].terrain, i);
+            colors[i] = terrainColor(static_cast<uint8_t>(provinces[i].terrain), i);
         }
         selected = -1;
         printf("Generated: %zu verts, %zu tris, %u provinces\n",
@@ -240,9 +240,9 @@ int main() {
             DrawText(p.name.c_str(), panelX + 10, panelY + 10, 18, WHITE);
             DrawText(TextFormat("Terrain: %s", terrainName(p.terrain)), panelX + 10, panelY + 35, 16, LIGHTGRAY);
             DrawText(TextFormat("Population: %d", p.population), panelX + 10, panelY + 55, 16, LIGHTGRAY);
-            DrawText(TextFormat("Wealth: %.1f", p.wealth), panelX + 10, panelY + 75, 16, LIGHTGRAY);
+            DrawText(TextFormat("Tax: %.1f", p.tax_income), panelX + 10, panelY + 75, 16, LIGHTGRAY);
             DrawText(TextFormat("Fertility: %.0f%%", p.fertility * 100), panelX + 10, panelY + 95, 16, LIGHTGRAY);
-            DrawText(TextFormat("Resources: %.0f%%", p.resources * 100), panelX + 10, panelY + 115, 16, LIGHTGRAY);
+            DrawText(TextFormat("Minerals: %.0f%%", p.minerals * 100), panelX + 10, panelY + 115, 16, LIGHTGRAY);
         }
 
         DrawRectangle(10, H - 75, 500, 65, {0, 0, 0, 150});

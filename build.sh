@@ -7,8 +7,23 @@ echo ""
 # Add common cmake paths to PATH
 export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
 
-# Check for clean flag
-if [[ "$1" == "clean" ]]; then
+# Parse flags
+CLEAN=false
+for arg in "$@"; do
+    case "$arg" in
+        clean|--clean) CLEAN=true ;;
+        --help|-h)
+            echo "Usage: ./build.sh [OPTIONS]"
+            echo ""
+            echo "Options:"
+            echo "  clean, --clean    Remove build directory before building"
+            echo "  --help, -h        Show this help"
+            exit 0
+            ;;
+    esac
+done
+
+if [[ "$CLEAN" == true ]]; then
     echo "Cleaning build directory..."
     rm -rf build
     echo "✓ Build directory cleaned"
@@ -22,6 +37,9 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     OS="linux"
     NPROC=$(nproc)
+elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "mingw"* || "$OSTYPE" == "cygwin"* ]]; then
+    OS="windows"
+    NPROC=${NUMBER_OF_PROCESSORS:-4}
 else
     echo "ERROR: Unsupported OS: $OSTYPE"
     exit 1
@@ -30,54 +48,55 @@ fi
 echo "Platform: $OS"
 echo ""
 
-# Step 1: Check for CMake
-if ! command -v cmake &> /dev/null; then
-    echo "ERROR: CMake not found!"
-    if [[ "$OS" == "macos" ]]; then
-        echo "Install with: brew install cmake"
-    else
-        echo "Install with: sudo apt-get install cmake"
+# Step 1: Install system dependencies
+echo "Checking system dependencies..."
+
+if [[ "$OS" == "macos" ]]; then
+    if ! command -v cmake &> /dev/null; then
+        echo "Installing cmake via Homebrew..."
+        if ! command -v brew &> /dev/null; then
+            echo "ERROR: Homebrew not found. Install from https://brew.sh then re-run."
+            exit 1
+        fi
+        brew install cmake
     fi
-    exit 1
-fi
+    echo "✓ CMake found: $(cmake --version | head -n 1)"
 
-echo "✓ CMake found: $(cmake --version | head -n 1)"
-
-# Step 2: Setup Boost submodule
-echo "Setting up Boost..."
-if [ ! -d "external/boost/.git" ]; then
-    echo "Initializing Boost submodule..."
-    git submodule update --init external/boost
-    cd external/boost
-    git checkout boost-1.85.0
-    echo "Installing Boost dependencies..."
-    git submodule update --init tools/boostdep tools/build
-    for lib in log filesystem system thread; do
-        python3 tools/boostdep/depinst/depinst.py --include example $lib
+elif [[ "$OS" == "linux" ]]; then
+    REQUIRED_PKGS="cmake build-essential git python3 libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libgl-dev"
+    MISSING_PKGS=""
+    for pkg in $REQUIRED_PKGS; do
+        if ! dpkg -s "$pkg" &>/dev/null 2>&1; then
+            MISSING_PKGS="$MISSING_PKGS $pkg"
+        fi
     done
-    cd ../..
-    echo "✓ Boost 1.85.0 initialized"
-else
-    echo "✓ Boost submodule already initialized"
+    if [[ -n "$MISSING_PKGS" ]]; then
+        echo "Installing missing packages:$MISSING_PKGS"
+        sudo apt-get update -qq
+        sudo apt-get install -y $MISSING_PKGS
+    fi
+    echo "✓ All Linux dependencies installed"
+    echo "✓ CMake found: $(cmake --version | head -n 1)"
+
+elif [[ "$OS" == "windows" ]]; then
+    if ! command -v cmake &> /dev/null; then
+        echo "ERROR: CMake not found."
+        echo "Install from: https://cmake.org/download/"
+        echo "Or with winget: winget install Kitware.CMake"
+        exit 1
+    fi
+    echo "✓ CMake found: $(cmake --version | head -n 1)"
 fi
 
+# Step 3: Initialize git submodules
 echo ""
+echo "Setting up submodules..."
 
-# Step 3: Setup Raylib submodule
-echo "Setting up Raylib..."
-if [ ! -d "external/raylib/.git" ]; then
-    echo "Initializing Raylib submodule..."
-    git submodule update --init external/raylib
-    echo "✓ Raylib initialized"
-else
-    echo "✓ Raylib submodule already initialized"
-fi
+# Core submodules
+git submodule update --init external/raylib external/boost external/flecs external/flatbuffers external/eigen
 
-echo ""
-
-# Step 4: Setup Dear ImGui
-echo "Setting up Dear ImGui..."
-if [ ! -d "external/imgui" ]; then
+# Dear ImGui (cloned separately, not a submodule)
+if [ ! -f "external/imgui/imgui.cpp" ]; then
     echo "Cloning Dear ImGui..."
     git clone --depth 1 --branch v1.91.5 https://github.com/ocornut/imgui.git external/imgui
     echo "✓ Dear ImGui cloned"
@@ -85,18 +104,29 @@ else
     echo "✓ Dear ImGui already exists"
 fi
 
+# Boost sub-submodules: init core libs then use depinst for transitive deps
+echo "Setting up Boost dependencies..."
+cd external/boost
+git checkout boost-1.85.0 2>/dev/null || true
+git submodule update --init tools/boostdep tools/build tools/cmake
+git submodule update --init libs/log libs/filesystem libs/system libs/thread libs/config libs/headers
+python3 tools/boostdep/depinst/depinst.py log
+python3 tools/boostdep/depinst/depinst.py filesystem
+python3 tools/boostdep/depinst/depinst.py thread
+cd ../..
+echo "✓ Boost 1.85.0 initialized"
+
 echo ""
 
-# Step 5: Build Fenrir
-echo ""
+# Step 4: Build Fenrir
 echo "Building Fenrir..."
 mkdir -p build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=Debug
-make -j$NPROC
+cmake --build . -j "$NPROC"
 cd ..
 
-# Step 6: Verify output
+# Step 5: Verify output
 EXE_FILE="bin/fenrir"
 
 if [ -f "$EXE_FILE" ]; then
